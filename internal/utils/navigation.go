@@ -93,8 +93,8 @@ func BuildNavigation(rootDir string, documentsDir string) (*types.NavItem, error
 			return nil
 		}
 
-		// Skip hidden directories and document.md files
-		if strings.HasPrefix(filepath.Base(path), ".") || filepath.Base(path) == "document.md" {
+		// Skip document.md files
+		if filepath.Base(path) == "document.md" {
 			return nil
 		}
 
