@@ -23,7 +23,7 @@ This roadmap breaks down the hidden files feature into 4 phases, each building o
 3. 文档列表 API 返回包含隐藏文件夹中的文档
 
 **Plans:**
-- [ ] 01-01-PLAN.md — Remove hidden directory filtering from file system scanning
+1/1 plans complete
 
 **Estimated Plans:** 1
 
@@ -97,7 +97,7 @@ This roadmap breaks down the hidden files feature into 4 phases, each building o
 
 | Phase | Status | Plans | Progress |
 |-------|--------|-------|----------|
-| 1 | Planned | 1 | 0% |
+| 1 | 1/1 | Complete   | 2026-04-04 |
 | 2 | Pending | 2-3 | 0% |
 | 3 | Pending | 1-2 | 0% |
 | 4 | Pending | 1-2 | 0% |
