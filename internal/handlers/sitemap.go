@@ -25,8 +25,8 @@ type SitemapURL struct {
 }
 
 type Sitemap struct {
-	XMLName xml.Name    `xml:"urlset"`
-	XMLNS   string      `xml:"xmlns,attr"`
+	XMLName xml.Name     `xml:"urlset"`
+	XMLNS   string       `xml:"xmlns,attr"`
 	URLs    []SitemapURL `xml:"url"`
 }
 
@@ -145,13 +145,13 @@ func renderHTMLSitemap(w http.ResponseWriter, r *http.Request, pages []SitemapPa
 
 	// Create the sitemap page data
 	sitemapData := SitemapPage{
-		Title:        fmt.Sprintf("Sitemap - %s", cfg.Wiki.Title),
-		Config:       cfg,
-		BaseURL:      baseURL,
-		Pages:        pages,
-		Categories:   categories,
-		UserRole:     userRole,
-		HomeCategory: homeCategory,
+		Title:          fmt.Sprintf("Sitemap - %s", cfg.Wiki.Title),
+		Config:         cfg,
+		BaseURL:        baseURL,
+		Pages:          pages,
+		Categories:     categories,
+		UserRole:       userRole,
+		HomeCategory:   homeCategory,
 		BackToHome:     i18n.Translate("nav.back_to_home"),
 		SitemapTitle:   i18n.Translate("sitemap.title"),
 		XMLSitemap:     i18n.Translate("sitemap.xml_sitemap"),
@@ -220,11 +220,6 @@ func gatherPages(baseURL string, cfg *config.Config, session *auth.Session) ([]S
 
 			// Convert path separators to forward slashes
 			relDirPath = filepath.ToSlash(relDirPath)
-
-			// Skip hidden directories
-			if strings.HasPrefix(filepath.Base(relDirPath), ".") {
-				return nil
-			}
 
 			// Add to XML sitemap URLs
 			urlPath := "/" + relDirPath

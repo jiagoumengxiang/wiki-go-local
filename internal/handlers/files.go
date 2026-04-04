@@ -570,7 +570,7 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	// We need to determine the document path from the file path
 	// The path is like "pages/home/image.png" or "finance/doc/image.png"
 	docPath := filepath.Dir(path)
-	
+
 	// Determine logical path for access check
 	logicalPath := "/" + docPath
 	if docPath == "pages/home" {
@@ -1224,7 +1224,7 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		possibleNewPathInPages := filepath.Join(cfg.Wiki.RootDir, newPath)
 
 		if fileExists(possibleNewPathInDocuments) ||
-		   (strings.HasPrefix(newPath, "pages/") && fileExists(possibleNewPathInPages)) {
+			(strings.HasPrefix(newPath, "pages/") && fileExists(possibleNewPathInPages)) {
 			// The file with the new name already exists, likely was already renamed
 			fmt.Printf("File already appears to have been renamed to: %s\n", newPath)
 			w.WriteHeader(http.StatusOK)
@@ -1346,11 +1346,6 @@ func ListFoldersHandler(w http.ResponseWriter, r *http.Request, cfg *config.Conf
 		// Only process directories
 		if !d.IsDir() {
 			return nil
-		}
-
-		// Skip hidden directories
-		if strings.HasPrefix(d.Name(), ".") {
-			return filepath.SkipDir
 		}
 
 		// Calculate relative path

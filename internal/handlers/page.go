@@ -13,10 +13,10 @@ import (
 	"wiki-go/internal/auth"
 	"wiki-go/internal/comments"
 	"wiki-go/internal/config"
+	"wiki-go/internal/frontmatter"
 	"wiki-go/internal/i18n"
 	"wiki-go/internal/types"
 	"wiki-go/internal/utils"
-	"wiki-go/internal/frontmatter"
 )
 
 // PageHandler handles requests for pages
@@ -144,12 +144,12 @@ func PageHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 
 		// Use the document path for rendering to handle local file references
 		content = template.HTML(utils.RenderMarkdownWithPath(string(mdContent), decodedPath))
-		
+
 		// If content is empty but document exists, ensure we have something truthy for template conditions
 		if strings.TrimSpace(string(content)) == "" {
 			content = template.HTML(" ") // Single space to make it truthy but effectively empty
 		}
-		
+
 		lastModified = docInfo.ModTime()
 
 		// Update the document layout in the page data
@@ -166,8 +166,8 @@ func PageHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 	// Build directory listing HTML
 	var dirItems []string
 	for _, f := range files {
-		if !f.IsDir() || strings.HasPrefix(f.Name(), ".") || f.Name() == "document.md" {
-			continue // Skip non-directories, hidden files, and document.md
+		if !f.IsDir() || f.Name() == "document.md" {
+			continue // Skip non-directories and document.md
 		}
 
 		dirName := f.Name()
