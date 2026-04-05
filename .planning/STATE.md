@@ -43,7 +43,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 260405-dyl | Support listing arbitrary MD files and extend file tree to file level | 2026-04-05 | 290d1ea | [260405-dyl-md](./quick/260405-dyl-md/) |
+| 260405-dyl | Support listing arbitrary MD files and extend file tree to file level | 2026-04-05 | 25be81e | [260405-dyl-md](./quick/260405-dyl-md/) |
 | 260405-cpb | Fix dot folder path handling to list MD files | 2026-04-05 | f274e86 | [260405-cpb-xxx-md](./quick/260405-cpb-xxx-md/) |
 
 ## Pending Todos
@@ -71,12 +71,6 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 - **2026-04-05**: Completed quick task 260405-cpb: Fix dot folder path handling to list MD files
 
 - **2026-04-05**: Completed quick task 260405-dyl: Support listing arbitrary MD files and extend file tree to file level
-  - Task 1: Updated PageHandler to handle file paths and directory listings
-  - Task 2: Updated navigation tree to include all .md files
-  - Task 3: Updated sitemap generation to include all .md files
-  - All .md files now accessible via URL paths (e.g., /folder/file.md)
-  - Navigation tree displays file-level nodes
-  - Directory listings show both subdirectories and .md files
 
 ## Notes
 
