@@ -132,13 +132,35 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	}
 
 	// Check if directory exists
-	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(FileResponse{
-			Success: false,
-			Message: "Document directory does not exist.",
-		})
-		return
+	fileInfo, err := os.Stat(uploadDir)
+	if err != nil {
+		// If path doesn't exist, check if it's a .md file (new structure)
+		if os.IsNotExist(err) {
+			mdFilePath := uploadDir + ".md"
+			if _, mdErr := os.Stat(mdFilePath); mdErr == nil {
+				// .md file exists, use its parent directory for attachments
+				uploadDir = filepath.Dir(mdFilePath)
+			} else {
+				// Neither directory nor .md file exists
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(FileResponse{
+					Success: false,
+					Message: "Document directory does not exist.",
+				})
+				return
+			}
+		} else {
+			// Other error occurred
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(FileResponse{
+				Success: false,
+				Message: "Failed to check document path.",
+			})
+			return
+		}
+	} else if !fileInfo.IsDir() {
+		// Path exists but is a file (not a directory), use its parent directory
+		uploadDir = filepath.Dir(uploadDir)
 	}
 
 	// Get the uploaded file
@@ -380,13 +402,35 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	}
 
 	// Check if directory exists
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(FileResponse{
-			Success: false,
-			Message: "Document directory does not exist.",
-		})
-		return
+	fileInfo, err := os.Stat(dirPath)
+	if err != nil {
+		// If path doesn't exist, check if it's a .md file (new structure)
+		if os.IsNotExist(err) {
+			mdFilePath := dirPath + ".md"
+			if _, mdErr := os.Stat(mdFilePath); mdErr == nil {
+				// .md file exists, use its parent directory for attachments
+				dirPath = filepath.Dir(mdFilePath)
+			} else {
+				// Neither directory nor .md file exists
+				w.WriteHeader(http.StatusNotFound)
+				json.NewEncoder(w).Encode(FileResponse{
+					Success: false,
+					Message: "Document directory does not exist.",
+				})
+				return
+			}
+		} else {
+			// Other error occurred
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(FileResponse{
+				Success: false,
+				Message: "Failed to check document path.",
+			})
+			return
+		}
+	} else if !fileInfo.IsDir() {
+		// Path exists but is a file (not a directory), use its parent directory
+		dirPath = filepath.Dir(dirPath)
 	}
 
 	// Read the directory contents
@@ -517,6 +561,26 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		filename := parts[len(parts)-1]
 		docDir := filepath.Dir(filePath)
 		filePath = filepath.Join(docDir, filename)
+	} else if len(parts) > 1 {
+		// Path format: docs/myfile/attachment.jpg
+		// Check if it's a .md file structure (new file-based documents)
+		docPart := parts[len(parts)-2]
+		docPath := strings.Join(parts[:len(parts)-1], "/")
+		attachmentFilename := parts[len(parts)-1]
+
+		// Try to find the .md file
+		var mdDir string
+		if strings.HasPrefix(docPath, "pages/") {
+			mdDir = filepath.Join(cfg.Wiki.RootDir, docPath, docPart+".md")
+		} else {
+			mdDir = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPath, docPart+".md")
+		}
+
+		// Check if .md file exists
+		if _, mdErr := os.Stat(mdDir); mdErr == nil {
+			// .md file exists, use its parent directory
+			filePath = filepath.Join(filepath.Dir(mdDir), attachmentFilename)
+		}
 	}
 
 	// Check if file exists
@@ -597,6 +661,29 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		// For access check, use the parent of the .md file
 		isMarkdownDocument = true
 		docPath = filepath.Dir(strings.Join(parts[:len(parts)-1], "/"))
+	} else if len(parts) > 1 {
+		// Path format: docs/myfile/attachment.jpg
+		// Check if it's a .md file structure (new file-based documents)
+		docPart := parts[len(parts)-2]
+		potentialDocPath := strings.Join(parts[:len(parts)-1], "/")
+
+		// Try to find the .md file
+		var mdFilePath string
+		if strings.HasPrefix(potentialDocPath, "pages/") {
+			mdFilePath = filepath.Join(cfg.Wiki.RootDir, potentialDocPath, docPart+".md")
+		} else {
+			mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, potentialDocPath, docPart+".md")
+		}
+
+		// Check if .md file exists
+		if _, mdErr := os.Stat(mdFilePath); mdErr == nil {
+			// .md file exists, mark as markdown document
+			isMarkdownDocument = true
+			docPath = filepath.Dir(potentialDocPath + "/" + docPart)
+		} else {
+			// The path is like "pages/home/image.png" or "finance/doc/image.png"
+			docPath = filepath.Dir(path)
+		}
 	} else {
 		// The path is like "pages/home/image.png" or "finance/doc/image.png"
 		docPath = filepath.Dir(path)
@@ -632,7 +719,7 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	// Handle .md file paths - if path contains a .md file followed by a filename,
 	// extract the parent directory
 	if isMarkdownDocument {
-		// Path format: docs/myfile.md/attachment.jpg
+		// Path format: docs/myfile.md/attachment.jpg or docs/myfile/attachment.jpg (new structure)
 		// Reconstruct: parentDir/attachment.jpg
 		filename := parts[len(parts)-1]
 		docDir := filepath.Dir(filePath)
@@ -642,6 +729,27 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	// Check if file exists
 	var fileInfo os.FileInfo
 	fileInfo, err := os.Stat(filePath)
+	if err != nil && os.IsNotExist(err) && !isMarkdownDocument && len(parts) > 1 {
+		// Path doesn't exist, try to check if it's a .md file structure
+		docPart := parts[len(parts)-2]
+		potentialDocPath := strings.Join(parts[:len(parts)-1], "/")
+
+		// Try to find the .md file
+		var mdFilePath string
+		if strings.HasPrefix(potentialDocPath, "pages/") {
+			mdFilePath = filepath.Join(cfg.Wiki.RootDir, potentialDocPath, docPart+".md")
+		} else {
+			mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, potentialDocPath, docPart+".md")
+		}
+
+		// Check if .md file exists
+		if _, mdErr := os.Stat(mdFilePath); mdErr == nil {
+			// .md file exists, use its parent directory
+			filePath = filepath.Join(filepath.Dir(mdFilePath), parts[len(parts)-1])
+			fileInfo, err = os.Stat(filePath)
+		}
+	}
+
 	if os.IsNotExist(err) {
 		http.Error(w, "File not found", http.StatusNotFound)
 		return
