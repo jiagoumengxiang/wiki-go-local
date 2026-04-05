@@ -106,3 +106,17 @@ None - no external service configuration required.
 ---
 *Quick task: 260405-dyl*
 *Completed: 2026-04-05*
+
+## Self-Check: PASSED
+
+- ✅ SUMMARY.md created at `.planning/quick/260405-dyl-md/260405-dyl-SUMMARY.md`
+- ✅ All task commits verified:
+  - 4c8c374: feat(260405-dyl): Update PageHandler to handle file paths and directory listings
+  - 5a1e58d: feat(260405-dyl): Update navigation tree to include all .md files
+  - 290d1ea: feat(260405-dyl): Update sitemap generation to include all .md files
+  - 25be81e: docs(260405-dyl): Complete quick task with SUMMARY and STATE updates
+- ✅ STATE.md updated with quick task entry
+- ✅ .gitignore updated to allow planning .md files
+- ✅ All changes committed to git
+- ✅ Build successful (no compilation errors)
+- ✅ Plan executed exactly as specified (no deviations)
