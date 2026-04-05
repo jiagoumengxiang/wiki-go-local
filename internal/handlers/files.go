@@ -99,6 +99,7 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 
 	// Get the document path from the request
 	docPath := r.FormValue("docPath")
+
 	if docPath == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(FileResponse{
@@ -117,8 +118,6 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	if docPath == "" || docPath == "/" {
 		docPath = "pages/home"
 	}
-
-	log.Printf("UploadFileHandler: docPath=%s", docPath)
 
 	// Determine the full filesystem path to the document's directory
 	var uploadDir string
@@ -371,9 +370,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	// Remove leading slash if present
 	path = strings.TrimPrefix(path, "/")
 
-	// Log for debugging
-	log.Printf("ListFilesHandler: path=%s", path)
-
 	// Special case for homepage
 	if path == "" || path == "/" {
 		path = "pages/home"
@@ -495,12 +491,10 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		// Always use full relative path (directory + filename) to support nested directories
 		// This works for both regular directories and hidden directories (.opencode/, etc.)
 		urlPath := filepath.Join("/api/files", path, file.Name())
-		log.Printf("ListFilesHandler: file URL=%s (path=%s, filename=%s)", urlPath, path, file.Name())
 		// Replace backslashes with forward slashes for URLs
 		urlPath = strings.ReplaceAll(urlPath, "\\", "/")
 		// URL-encode special characters (spaces, Chinese characters, etc.)
 		encodedURLPath := url.PathEscape(urlPath)
-		log.Printf("ListFilesHandler: encoded URL=%s (original=%s)", encodedURLPath, urlPath)
 
 		// Get the MIME type based on extension
 		fileType := config.GetMimeTypeForExtension(ext)
@@ -699,7 +693,13 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		if strings.HasPrefix(potentialDocPath, "pages/") {
 			mdFilePath = filepath.Join(cfg.Wiki.RootDir, potentialDocPath, docPart+".md")
 		} else {
-			mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, potentialDocPath, docPart+".md")
+			// If potentialDocPath equals docPart, use only one of them to avoid doubling the path
+			// e.g., "test/filename.pdf" → "documents/test.md" (not "documents/test/test.md")
+			if potentialDocPath == docPart {
+				mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPart+".md")
+			} else {
+				mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, potentialDocPath, docPart+".md")
+			}
 		}
 
 		// Check if .md file exists
@@ -747,10 +747,21 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	// extract the parent directory
 	if isMarkdownDocument {
 		// Path format: docs/myfile.md/attachment.jpg or docs/myfile/attachment.jpg (new structure)
-		// Reconstruct: parentDir/attachment.jpg
+		// The attachment file should be in the same directory as the .md file
 		filename := parts[len(parts)-1]
-		docDir := filepath.Dir(filePath)
-		filePath = filepath.Join(docDir, filename)
+
+		// Reconstruct the .md file path to get its parent directory
+		// For "test/filename.pdf", .md file is "documents/test.md", parent is "documents/"
+		var mdFilePath string
+		if strings.HasPrefix(docPath, "pages/") {
+			mdFilePath = filepath.Join(cfg.Wiki.RootDir, docPath+".md")
+		} else {
+			mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPath+".md")
+		}
+
+		// Get parent directory of .md file
+		parentDir := filepath.Dir(mdFilePath)
+		filePath = filepath.Join(parentDir, filename)
 	}
 
 	// Check if file exists
@@ -766,7 +777,13 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		if strings.HasPrefix(potentialDocPath, "pages/") {
 			mdFilePath = filepath.Join(cfg.Wiki.RootDir, potentialDocPath, docPart+".md")
 		} else {
-			mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, potentialDocPath, docPart+".md")
+			// If potentialDocPath equals docPart, use only one of them to avoid doubling the path
+			// e.g., "test/filename.pdf" → "documents/test.md" (not "documents/test/test.md")
+			if potentialDocPath == docPart {
+				mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPart+".md")
+			} else {
+				mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, potentialDocPath, docPart+".md")
+			}
 		}
 
 		// Check if .md file exists
