@@ -110,3 +110,33 @@ Updated all file handlers to properly handle paths without `.md` suffix:
 - ✅ No breaking changes to existing functionality
 
 **Commit:** c79c29d - "fix: properly handle .md document paths without .md suffix"
+
+## Additional Fix (2026-04-05)
+
+**Problem discovered:**
+After uploading attachments successfully, previewing them resulted in 404 errors. The URLs returned by the upload and list handlers included the document name in the path, but files were actually saved to the parent directory.
+
+**Example issue:**
+- Document: `docs/myfile.md`
+- File saved to: `data/documents/docs/attachment.jpg`
+- Wrong URL: `/api/files/docs/myfile/attachment.jpg` → 404 error
+- Correct URL: `/api/files/docs/attachment.jpg`
+
+**Changes made:**
+
+1. **UploadFileHandler** (lines 284-294, 325-334):
+   - Track whether the document is a `.md` file (`isMarkdownDoc` flag)
+   - Return parent directory URL for `.md` documents
+   - Return full path URL for directory-based documents
+
+2. **ListFilesHandler** (lines 492-502):
+   - Track whether the document is a `.md` file (`isMarkdownDoc` flag)
+   - Return parent directory URL for `.md` documents
+   - Return full path URL for directory-based documents
+
+**Testing:**
+- ✅ Code compiles successfully
+- ✅ URL paths match actual file locations
+- ✅ Preview of uploaded attachments works correctly
+
+**Commit:** ff26345 - "fix: return correct URLs for .md document attachments"
