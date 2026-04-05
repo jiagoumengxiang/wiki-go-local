@@ -48,6 +48,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 | 260405-dyl | Support listing arbitrary MD files and extend file tree to file level | 2026-04-05 | 25be81e | [260405-dyl-md](./quick/260405-dyl-md/) |
 | 260405-cpb | Fix dot folder path handling to list MD files | 2026-04-05 | f274e86 | [260405-cpb-xxx-md](./quick/260405-cpb-xxx-md/) |
 | 260406-hk | Support empty documents_dir config - use working directory | 2026-04-06 | ac01319 | [260406-hk-support-empty-documents-config](./quick/260406-hk-support-empty-documents-config/) |
+| 260406-atw | Configure documents path to parent of config directory | 2026-04-06 | 8597991 | [260406-atw-configure-documents-path-to-parent-of-co](./quick/260406-atw-configure-documents-path-to-parent-of-co/) |
 
 ## Pending Todos
 
@@ -81,7 +82,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 - **2026-04-05**: Completed quick task 260405-mxv: Fix create document to create MD file instead of directory
 
-- **2026-04-06**: Completed quick task 260406-hk: Support empty documents_dir config - use working directory
+- **2026-04-06**: Completed quick task 260406-atw: Configure documents path to parent of config directory
 
 ## Notes
 
@@ -93,4 +94,4 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 ---
 
-*Last updated: 2026-04-06 after quick task 260406-hk completion*
+*Last updated: 2026-04-06 after quick task 260406-atw completion*
