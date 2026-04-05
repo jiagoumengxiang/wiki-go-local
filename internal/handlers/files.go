@@ -126,6 +126,11 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		uploadDir = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPath)
 	}
 
+	// Handle .md file paths - use parent directory for attachments
+	if strings.HasSuffix(strings.ToLower(docPath), ".md") {
+		uploadDir = filepath.Dir(uploadDir)
+	}
+
 	// Check if directory exists
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -369,6 +374,11 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		dirPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
 	}
 
+	// Handle .md file paths - use parent directory for attachments
+	if strings.HasSuffix(strings.ToLower(path), ".md") {
+		dirPath = filepath.Dir(dirPath)
+	}
+
 	// Check if directory exists
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		w.WriteHeader(http.StatusNotFound)
@@ -498,6 +508,17 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		filePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
 	}
 
+	// Handle .md file paths - if path contains a .md file followed by a filename,
+	// extract the parent directory
+	parts := strings.Split(path, "/")
+	if len(parts) > 0 && strings.HasSuffix(strings.ToLower(parts[len(parts)-2]), ".md") {
+		// Path format: docs/myfile.md/attachment.jpg
+		// Reconstruct: parentDir/attachment.jpg
+		filename := parts[len(parts)-1]
+		docDir := filepath.Dir(filePath)
+		filePath = filepath.Join(docDir, filename)
+	}
+
 	// Check if file exists
 	fileInfo, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
@@ -566,10 +587,20 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	path = filepath.Clean(path)
 	path = strings.ReplaceAll(path, "\\", "/")
 
-	// Check access permissions
-	// We need to determine the document path from the file path
-	// The path is like "pages/home/image.png" or "finance/doc/image.png"
-	docPath := filepath.Dir(path)
+	// Handle .md file paths - if path contains a .md file followed by a filename,
+	// extract the parent directory for access check
+	parts := strings.Split(path, "/")
+	var docPath string
+	var isMarkdownDocument bool
+	if len(parts) > 0 && strings.HasSuffix(strings.ToLower(parts[len(parts)-2]), ".md") {
+		// Path format: docs/myfile.md/attachment.jpg
+		// For access check, use the parent of the .md file
+		isMarkdownDocument = true
+		docPath = filepath.Dir(strings.Join(parts[:len(parts)-1], "/"))
+	} else {
+		// The path is like "pages/home/image.png" or "finance/doc/image.png"
+		docPath = filepath.Dir(path)
+	}
 
 	// Determine logical path for access check
 	logicalPath := "/" + docPath
@@ -598,7 +629,18 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		filePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
 	}
 
+	// Handle .md file paths - if path contains a .md file followed by a filename,
+	// extract the parent directory
+	if isMarkdownDocument {
+		// Path format: docs/myfile.md/attachment.jpg
+		// Reconstruct: parentDir/attachment.jpg
+		filename := parts[len(parts)-1]
+		docDir := filepath.Dir(filePath)
+		filePath = filepath.Join(docDir, filename)
+	}
+
 	// Check if file exists
+	var fileInfo os.FileInfo
 	fileInfo, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
 		http.Error(w, "File not found", http.StatusNotFound)
