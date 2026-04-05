@@ -40,15 +40,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### 搜索功能
 
-- [ ] **SRCH-01**: 搜索索引包含隐藏文件夹中的文档内容
-- [ ] **SRCH-02**: 搜索结果包含隐藏文件夹中的文档
-- [ ] **SRCH-03**: 搜索结果显示文档路径（包括隐藏文件夹）
+- [x] **SRCH-01**: 搜索索引包含隐藏文件夹中的文档内容
+- [x] **SRCH-02**: 搜索结果包含隐藏文件夹中的文档
+- [x] **SRCH-03**: 搜索结果显示文档路径（包括隐藏文件夹）
 
 ### 权限控制
 
-- [ ] **PERM-01**: 隐藏文件夹的访问权限遵循现有的权限系统
-- [ ] **PERM-02**: 私有模式下的隐藏文件夹文档需要登录才能访问
-- [ ] **PERM-03**: 访问规则（access rules）适用于隐藏文件夹路径
+- [x] **PERM-01**: 隐藏文件夹的访问权限遵循现有的权限系统
+- [x] **PERM-02**: 私有模式下的隐藏文件夹文档需要登录才能访问
+- [x] **PERM-03**: 访问规则（access rules）适用于隐藏文件夹路径
 
 ## v2 Requirements
 
@@ -93,12 +93,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VER-01 | Phase 3 | Complete |
 | VER-02 | Phase 3 | Complete |
 | VER-03 | Phase 3 | Complete |
-| SRCH-01 | Phase 4 | Pending |
-| SRCH-02 | Phase 4 | Pending |
-| SRCH-03 | Phase 4 | Pending |
-| PERM-01 | Phase 4 | Pending |
-| PERM-02 | Phase 4 | Pending |
-| PERM-03 | Phase 4 | Pending |
+| SRCH-01 | Phase 4 | Complete |
+| SRCH-02 | Phase 4 | Complete |
+| SRCH-03 | Phase 4 | Complete |
+| PERM-01 | Phase 4 | Complete |
+| PERM-02 | Phase 4 | Complete |
+| PERM-03 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 18 total
