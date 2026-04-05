@@ -44,6 +44,8 @@ cmd
 # except README and SECURITY
 !README.md
 !SECURITY.md
+# except planning files
+!.planning/**/*.md
 # for quick python tests
 /.venv
 
