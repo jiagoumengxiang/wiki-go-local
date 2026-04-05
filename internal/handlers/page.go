@@ -92,7 +92,13 @@ func PageHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 	utils.MarkActiveNavItem(nav, path)
 
 	// Get the full filesystem path - adjust to use documents subdirectory
-	fsPath := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, decodedPath)
+	// Trim leading slash to make it a relative path for filepath.Join
+	// (filepath.Join discards all previous components if any component is an absolute path)
+	decodedPathForFS := decodedPath
+	if strings.HasPrefix(decodedPathForFS, "/") {
+		decodedPathForFS = decodedPathForFS[1:]
+	}
+	fsPath := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, decodedPathForFS)
 
 	// Check if path exists
 	info, err := os.Stat(fsPath)
