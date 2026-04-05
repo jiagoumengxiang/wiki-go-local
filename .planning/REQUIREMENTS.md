@@ -28,15 +28,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### 文件附件
 
-- [ ] **ATT-01**: 用户可以上传附件到隐藏文件夹中的文档目录
-- [ ] **ATT-02**: 隐藏文件夹中的文档可以引用附件文件
-- [ ] **ATT-03**: 附件文件列表 API 支持隐藏文件夹路径
+- [x] **ATT-01**: 用户可以上传附件到隐藏文件夹中的文档目录
+- [x] **ATT-02**: 隐藏文件夹中的文档可以引用附件文件
+- [x] **ATT-03**: 附件文件列表 API 支持隐藏文件夹路径
 
 ### 版本历史
 
-- [ ] **VER-01**: 隐藏文件夹中的文档支持版本历史记录
-- [ ] **VER-02**: 用户可以查看隐藏文件夹中文档的历史版本
-- [ ] **VER-03**: 用户可以恢复隐藏文件夹中文档的历史版本
+- [x] **VER-01**: 隐藏文件夹中的文档支持版本历史记录
+- [x] **VER-02**: 用户可以查看隐藏文件夹中文档的历史版本
+- [x] **VER-03**: 用户可以恢复隐藏文件夹中文档的历史版本
 
 ### 搜索功能
 
@@ -87,12 +87,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EDT-02 | Phase 2 | Complete |
 | EDT-03 | Phase 2 | Complete |
 | EDT-04 | Phase 2 | Complete |
-| ATT-01 | Phase 3 | Pending |
-| ATT-02 | Phase 3 | Pending |
-| ATT-03 | Phase 3 | Pending |
-| VER-01 | Phase 3 | Pending |
-| VER-02 | Phase 3 | Pending |
-| VER-03 | Phase 3 | Pending |
+| ATT-01 | Phase 3 | Complete |
+| ATT-02 | Phase 3 | Complete |
+| ATT-03 | Phase 3 | Complete |
+| VER-01 | Phase 3 | Complete |
+| VER-02 | Phase 3 | Complete |
+| VER-03 | Phase 3 | Complete |
 | SRCH-01 | Phase 4 | Pending |
 | SRCH-02 | Phase 4 | Pending |
 | SRCH-03 | Phase 4 | Pending |

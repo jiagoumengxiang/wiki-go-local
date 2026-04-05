@@ -99,7 +99,7 @@ This roadmap breaks down the hidden files feature into 4 phases, each building o
 |-------|--------|-------|----------|
 | 1 | 1/1 | Complete   | 2026-04-04 |
 | 2 | 1/1 | Complete   | 2026-04-05 |
-| 3 | Pending | 1-2 | 0% |
+| 3 | 1/1 | Complete   | 2026-04-05 |
 | 4 | Pending | 1-2 | 0% |
 
 **Total Progress:** 0%
