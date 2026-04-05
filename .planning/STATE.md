@@ -43,6 +43,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260405-mxv | Fix create document to create MD file instead of directory | 2026-04-05 | 309cbf5 | [260405-mxv-md](./quick/260405-mxv-md/) |
 | 260405-mrj | Fix editor to load and save arbitrary MD files | 2026-04-05 | 7767fda | [260405-mrj-md](./quick/260405-mrj-md/) |
 | 260405-dyl | Support listing arbitrary MD files and extend file tree to file level | 2026-04-05 | 25be81e | [260405-dyl-md](./quick/260405-dyl-md/) |
 | 260405-cpb | Fix dot folder path handling to list MD files | 2026-04-05 | f274e86 | [260405-cpb-xxx-md](./quick/260405-cpb-xxx-md/) |
@@ -74,6 +75,8 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 - **2026-04-05**: Completed quick task 260405-dyl: Support listing arbitrary MD files and extend file tree to file level
 
 - **2026-04-05**: Completed quick task 260405-mrj: Fix editor to load and save arbitrary MD files
+
+- **2026-04-05**: Completed quick task 260405-mxv: Fix create document to create MD file instead of directory
 
 ## Notes
 
