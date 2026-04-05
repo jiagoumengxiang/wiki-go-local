@@ -367,16 +367,33 @@ func SaveConfig(cfg *Config, w io.Writer) error {
 }
 
 // GetDocumentsDir returns the effective documents directory path.
-// If cfg.Wiki.DocumentsDir is empty, returns the current working directory.
+// If cfg.Wiki.DocumentsDir is empty, returns the parent directory of the config file's directory.
 // Otherwise, returns root_dir + documents_dir joined path.
 func GetDocumentsDir(cfg *Config) string {
 	if cfg.Wiki.DocumentsDir == "" {
-		wd, err := os.Getwd()
-		if err != nil {
-			// Fallback to root_dir if we can't get working directory
+		// Return parent directory of the config file's directory
+		configPath := ConfigFilePath
+
+		// If ConfigFilePath is relative, resolve it against working directory
+		if !filepath.IsAbs(configPath) {
+			wd, err := os.Getwd()
+			if err != nil {
+				// Fallback to root_dir if we can't get working directory
+				return cfg.Wiki.RootDir
+			}
+			configPath = filepath.Join(wd, configPath)
+		}
+
+		// Get the parent of the config directory
+		configDir := filepath.Dir(configPath)
+		parentDir := filepath.Dir(configDir)
+
+		// Fallback to root_dir if the parent directory is empty or "."
+		if parentDir == "" || parentDir == "." {
 			return cfg.Wiki.RootDir
 		}
-		return wd
+
+		return parentDir
 	}
 	return filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
 }
