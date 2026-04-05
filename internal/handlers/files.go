@@ -290,7 +290,7 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 			// For .md files, use parent directory in URL
 			urlPath = filepath.Join("/api/files", filepath.Dir(docPath), filename)
 		} else {
-			// For directory-based documents, include full path
+			// For directory-based documents (including old structure with document.md), include full path
 			urlPath = filepath.Join("/api/files", docPath, filename)
 		}
 		// Replace backslashes with forward slashes for URLs
@@ -338,7 +338,7 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		// For .md files, use parent directory in URL
 		urlPath = filepath.Join("/api/files", filepath.Dir(docPath), filename)
 	} else {
-		// For directory-based documents, include full path
+		// For directory-based documents (including old structure with document.md), include full path
 		urlPath = filepath.Join("/api/files", docPath, filename)
 	}
 	// Replace backslashes with forward slashes for URLs
@@ -498,7 +498,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 			// For .md files, use parent directory in URL
 			urlPath = filepath.Join("/api/files", filepath.Dir(path), file.Name())
 		} else {
-			// For directory-based documents, include full path
+			// For directory-based documents (including old structure with document.md), include full path
 			urlPath = filepath.Join("/api/files", path, file.Name())
 		}
 		// Replace backslashes with forward slashes for URLs
