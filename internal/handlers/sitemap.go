@@ -207,22 +207,19 @@ func gatherPages(baseURL string, cfg *config.Config, session *auth.Session) ([]S
 			return err
 		}
 
-		// Only include document.md files
-		if !info.IsDir() && filepath.Base(path) == "document.md" {
-			// Get the directory that contains this document.md
-			dirPath := filepath.Dir(path)
-
+		// Only include .md files (including document.md and other .md files)
+		if !info.IsDir() && strings.HasSuffix(path, ".md") {
 			// Get path relative to documents directory - this is the URL path
-			relDirPath, err := filepath.Rel(docsDir, dirPath)
+			relPath, err := filepath.Rel(docsDir, path)
 			if err != nil {
 				return err
 			}
 
 			// Convert path separators to forward slashes
-			relDirPath = filepath.ToSlash(relDirPath)
+			relPath = filepath.ToSlash(relPath)
 
 			// Add to XML sitemap URLs
-			urlPath := "/" + relDirPath
+			urlPath := "/" + relPath
 			if urlPath == "//" {
 				urlPath = "/"
 			}
@@ -243,17 +240,21 @@ func gatherPages(baseURL string, cfg *config.Config, session *auth.Session) ([]S
 			}
 			urls = append(urls, url)
 
-			// Get document title from document.md
+			// Get document title from the .md file
 			title := getDocumentTitle(path)
 			if title == "" {
-				title = filepath.Base(relDirPath)
+				// Fallback to formatted filename if no H1 found
+				title = strings.TrimSuffix(filepath.Base(relPath), ".md")
+				title = strings.ReplaceAll(title, "-", " ")
+				title = strings.ReplaceAll(title, "_", " ")
 			}
 
-			// Determine category from path
+			// Determine category from path (parent directory)
 			category := ""
-			pathParts := strings.Split(relDirPath, "/")
-			if len(pathParts) > 0 && pathParts[0] != "" {
-				category = pathParts[0]
+			pathParts := strings.Split(relPath, "/")
+			if len(pathParts) > 1 {
+				// Use parent directory as category
+				category = pathParts[len(pathParts)-2]
 			}
 
 			// Add to HTML sitemap entries
