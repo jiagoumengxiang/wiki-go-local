@@ -284,19 +284,23 @@ All success criteria met:
 ## Self-Check: PASSED
 
 **Files verified:**
-- [x] data/documents/.config/hidden-docs/test-config.md - Created
-- [x] data/documents/.system/api-config/api-endpoints.md - Created
-- [x] data/documents/home/document.md - Created
-- [x] cmd/verify-hidden-search/main.go - Created
-- [x] cmd/verify-permissions/main.go - Created
-- [x] cmd/test-access-rules/main.go - Created
+- [x] data/documents/.config/hidden-docs/test-config.md - Created ✓
+- [x] data/documents/.system/api-config/api-endpoints.md - Created ✓
+- [x] data/documents/home/document.md - Created ✓
+- [x] cmd/verify-hidden-search/main.go - Created ✓
+- [x] cmd/verify-permissions/main.go - Created ✓
+- [x] cmd/test-access-rules/main.go - Created ✓
 
 **Verification tools built and tested:**
-- [x] verify-hidden-search - Built and ran successfully
-- [x] verify-permissions - Built and ran successfully
-- [x] test-access-rules - Built and ran successfully
+- [x] verify-hidden-search - Built and ran successfully ✓
+- [x] verify-permissions - Built and ran successfully ✓
+- [x] test-access-rules - Built and ran successfully ✓
 
 **All verification tests passed:**
-- [x] Search indexing includes hidden folders
-- [x] Permission system applies to hidden folders
-- [x] Access rules apply to hidden folder paths
+- [x] Search indexing includes hidden folders ✓
+- [x] Permission system applies to hidden folders ✓
+- [x] Access rules apply to hidden folder paths ✓
+
+**Commits verified:**
+- [x] 5879fcc - test(04-01): verify search and permissions for hidden folders ✓
+- [x] 990c57e - docs(04-01): complete search and permissions verification plan ✓
