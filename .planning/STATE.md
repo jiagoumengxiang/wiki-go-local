@@ -45,6 +45,12 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 |---|-------------|------|--------|-----------|
 | 260405-cpb | Fix dot folder path handling to list MD files | 2026-04-05 | f274e86 | [260405-cpb-xxx-md](./quick/260405-cpb-xxx-md/) |
 
+## Pending Todos
+
+| Title | Area | Files | Created |
+|-------|------|-------|---------|
+| 支持列出任意MD文件并扩展文件树到文件级 | ui | 4 | 2026-04-05 |
+
 ## Recent Activity
 
 - **2025-04-05**: Project initialized
