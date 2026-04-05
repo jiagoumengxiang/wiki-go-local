@@ -50,7 +50,9 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 ## Pending Todos
 
-*No pending todos*
+| Title | Area | Files | Created |
+|-------|------|-------|---------|
+| 修复上传附件到md文件时目录不存在的问题 | file-upload | 1 | 2026-04-05 |
 
 ## Recent Activity
 
