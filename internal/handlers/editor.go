@@ -313,23 +313,21 @@ func CreateDocumentHandler(w http.ResponseWriter, r *http.Request) {
 	// Log the paths for debugging
 	log.Printf("Creating document: Title=%s, Path=%s, CleanPath=%s", req.Title, req.Path, cleanPath)
 
-	// Build the file path
+	// Build the file path - add .md extension directly
 	documentDir := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
-	fullPath := filepath.Join(documentDir, cleanPath)
+	docFile := filepath.Join(documentDir, cleanPath+".md")
 
-	// Log the full path
-	log.Printf("Full path: %s", fullPath)
+	// Log the file path
+	log.Printf("Creating file: %s", docFile)
 
-	// Create the directory if it doesn't exist
-	err := os.MkdirAll(fullPath, 0755)
+	// Create parent directory if it doesn't exist
+	parentDir := filepath.Dir(docFile)
+	err := os.MkdirAll(parentDir, 0755)
 	if err != nil {
-		log.Printf("Error creating directories: %v", err)
-		sendJSONError(w, "Failed to create directories", http.StatusInternalServerError, err.Error())
+		log.Printf("Error creating parent directory: %v", err)
+		sendJSONError(w, "Failed to create parent directory", http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	// Create the document.md file inside the directory
-	docFile := filepath.Join(fullPath, "document.md")
 
 	// Check if file already exists
 	if _, err := os.Stat(docFile); err == nil {
@@ -360,7 +358,7 @@ func CreateDocumentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := map[string]interface{}{
 		"success": true,
-		"url":     "/" + cleanPath,
+		"url":     "/" + cleanPath + ".md",
 		"message": "Document created successfully",
 	}
 
