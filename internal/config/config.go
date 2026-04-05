@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
 	"wiki-go/internal/crypto"
 	"wiki-go/internal/roles"
 
@@ -15,14 +16,14 @@ import (
 
 // ConfigFilePath defines the global path to the configuration file
 var (
-	ConfigFilePath string = "data/config.yaml"
+	ConfigFilePath string = "MDwiki/config.yaml"
 )
 
 // User represents a user with authentication credentials
 type User struct {
 	Username string   `yaml:"username" json:"username"`
 	Password string   `yaml:"password" json:"password,omitempty"`
-	Role     string   `yaml:"role" json:"role"`                       // "admin", "editor", or "viewer"
+	Role     string   `yaml:"role" json:"role"`                         // "admin", "editor", or "viewer"
 	Groups   []string `yaml:"groups,omitempty" json:"groups,omitempty"` // Optional groups for access control
 }
 
@@ -53,9 +54,9 @@ type Config struct {
 		AllowInsecureCookies bool `yaml:"allow_insecure_cookies"`
 		// Enable native TLS. When true, application will run over HTTPS using the
 		// supplied certificate and key paths.
-		SSL      bool   `yaml:"ssl"`
-		SSLCert  string `yaml:"ssl_cert"`
-		SSLKey   string `yaml:"ssl_key"`
+		SSL     bool   `yaml:"ssl"`
+		SSLCert string `yaml:"ssl_cert"`
+		SSLKey  string `yaml:"ssl_key"`
 	} `yaml:"server"`
 	Wiki struct {
 		RootDir                   string `yaml:"root_dir"`
@@ -65,11 +66,11 @@ type Config struct {
 		Notice                    string `yaml:"notice"`
 		Timezone                  string `yaml:"timezone"`
 		Private                   bool   `yaml:"private"`
-		DisableComments           bool   `yaml:"disable_comments"`              // Disable comments system-wide when true
-		DisableFileUploadChecking bool   `yaml:"disable_file_upload_checking"`  // Disable mimetype checking for file uploads when true
-		EnableLinkEmbedding       bool   `yaml:"enable_link_embedding"`         // Enable automatic link embedding from clipboard when true
-		HideAttachments           bool   `yaml:"hide_attachments"`              // Hide attachments section in documents when true
-		DisableContentMaxWidth    bool   `yaml:"disable_content_max_width"`     // Disable 900px content width limit when true
+		DisableComments           bool   `yaml:"disable_comments"`             // Disable comments system-wide when true
+		DisableFileUploadChecking bool   `yaml:"disable_file_upload_checking"` // Disable mimetype checking for file uploads when true
+		EnableLinkEmbedding       bool   `yaml:"enable_link_embedding"`        // Enable automatic link embedding from clipboard when true
+		HideAttachments           bool   `yaml:"hide_attachments"`             // Hide attachments section in documents when true
+		DisableContentMaxWidth    bool   `yaml:"disable_content_max_width"`    // Disable 900px content width limit when true
 		MaxVersions               int    `yaml:"max_versions"`
 		MaxUploadSize             int    `yaml:"max_upload_size"` // Maximum upload file size in MB
 		Language                  string `yaml:"language"`        // Default language for the wiki
@@ -78,7 +79,7 @@ type Config struct {
 	AccessRules []AccessRule `yaml:"access_rules,omitempty"`
 	Security    struct {
 		PasswordStrength int `yaml:"passwordstrength"`
-		LoginBan struct {
+		LoginBan         struct {
 			Enabled           bool `yaml:"enabled"`
 			MaxFailures       int  `yaml:"max_failures"`
 			WindowSeconds     int  `yaml:"window_seconds"`
@@ -98,12 +99,12 @@ func LoadConfig(path string) (*Config, error) {
 	config.Server.SSL = false
 	config.Server.SSLCert = ""
 	config.Server.SSLKey = ""
-	config.Wiki.RootDir = "data"
+	config.Wiki.RootDir = "MDwiki"
 	config.Wiki.DocumentsDir = "documents"
 	config.Wiki.Title = "📚 Wiki-Go"
 	config.Wiki.Owner = "wiki.example.com"
 	config.Wiki.Notice = "Copyright :::year::: © All rights reserved."
-	config.Wiki.Timezone = "America/Vancouver"
+	config.Wiki.Timezone = "Asia/shanghai"
 	config.Wiki.Private = false
 	config.Wiki.DisableComments = false
 	config.Wiki.DisableFileUploadChecking = false // Default to false - always check file uploads
@@ -112,7 +113,7 @@ func LoadConfig(path string) (*Config, error) {
 	config.Wiki.DisableContentMaxWidth = false
 	config.Wiki.MaxVersions = 10   // Default value
 	config.Wiki.MaxUploadSize = 10 // Default value
-	config.Wiki.Language = "en"    // Default to English
+	config.Wiki.Language = "zh-CN" // Default to English
 	config.Users = []User{}        // Initialize empty users array
 
 	// Security defaults
@@ -129,7 +130,7 @@ func LoadConfig(path string) (*Config, error) {
 		if os.IsNotExist(err) {
 			// Ensure the directory exists
 			dir := filepath.Dir(path)
-			if err := os.MkdirAll(dir, 0755); err != nil {
+			if err := os.MkdirAll(dir, 0o755); err != nil {
 				return nil, fmt.Errorf("failed to create directory %s: %w", dir, err)
 			}
 
@@ -199,7 +200,7 @@ func LoadConfig(path string) (*Config, error) {
 			)
 
 			// Write the config file
-			err = os.WriteFile(path, []byte(configData), 0644)
+			err = os.WriteFile(path, []byte(configData), 0o644)
 			if err != nil {
 				return nil, err
 			}
@@ -386,7 +387,7 @@ func ensureCompleteConfig(path string, cfg *Config, original []byte) error {
 
 	// Otherwise, overwrite the file with the fully rendered configuration that now contains
 	// any newly introduced settings.
-	if err := os.WriteFile(path, newData, 0644); err != nil {
+	if err := os.WriteFile(path, newData, 0o644); err != nil {
 		return fmt.Errorf("failed to update config file with new settings: %w", err)
 	}
 
