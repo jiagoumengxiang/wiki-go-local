@@ -60,9 +60,16 @@ func SourceHandler(w http.ResponseWriter, r *http.Request) {
 		path = strings.TrimSuffix(path, "/")
 		path = strings.ReplaceAll(path, "\\", "/")
 
-		// Get the full filesystem path, adding the documents subdirectory
-		dirPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
-		docPath = filepath.Join(dirPath, "document.md")
+		// Check if path ends with .md (direct file access)
+		if strings.HasSuffix(path, ".md") {
+			// Direct file access - use the file directly
+			docPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+			dirPath = filepath.Dir(docPath)
+		} else {
+			// Directory access - look for document.md
+			dirPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+			docPath = filepath.Join(dirPath, "document.md")
+		}
 	}
 
 	// Read the markdown file
@@ -152,11 +159,17 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 		path = strings.TrimSuffix(path, "/")
 		path = strings.ReplaceAll(path, "\\", "/")
 
-		// Save relative path for versioning
-		relativePath = "documents/" + path
-
-		// Get the full filesystem path, adding the documents subdirectory
-		docPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path, "document.md")
+		// Check if path ends with .md (direct file access)
+		if strings.HasSuffix(path, ".md") {
+			// Direct file access - use the file directly
+			docPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+			// For versioning, remove .md from relative path
+			relativePath = "documents/" + strings.TrimSuffix(path, ".md")
+		} else {
+			// Directory access - save to document.md
+			relativePath = "documents/" + path
+			docPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path, "document.md")
+		}
 	}
 
 	// Read the request body (new content)
