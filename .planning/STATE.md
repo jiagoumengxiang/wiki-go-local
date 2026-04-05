@@ -47,9 +47,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 ## Pending Todos
 
-| Title | Area | Files | Created |
-|-------|------|-------|---------|
-| 支持列出任意MD文件并扩展文件树到文件级 | ui | 4 | 2026-04-05 |
+*No pending todos*
 
 ## Recent Activity
 
