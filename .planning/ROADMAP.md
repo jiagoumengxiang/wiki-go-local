@@ -98,7 +98,7 @@ This roadmap breaks down the hidden files feature into 4 phases, each building o
 | Phase | Status | Plans | Progress |
 |-------|--------|-------|----------|
 | 1 | 1/1 | Complete   | 2026-04-04 |
-| 2 | Pending | 2-3 | 0% |
+| 2 | 1/1 | Complete   | 2026-04-05 |
 | 3 | Pending | 1-2 | 0% |
 | 4 | Pending | 1-2 | 0% |
 
