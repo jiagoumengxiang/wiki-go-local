@@ -417,7 +417,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 
 	// Determine the full filesystem path to the document's directory
 	var dirPath string
-	var isMarkdownDoc bool
 	if strings.HasPrefix(path, "pages/") {
 		// For pages directory (like homepage), don't add the documents directory
 		dirPath = filepath.Join(cfg.Wiki.RootDir, path)
@@ -431,7 +430,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	// Handle .md file paths - use parent directory for attachments
 	if strings.HasSuffix(strings.ToLower(path), ".md") {
 		dirPath = filepath.Dir(dirPath)
-		isMarkdownDoc = true
 		log.Printf("ListFilesHandler: .md file detected, dirPath=%s", dirPath)
 	}
 
@@ -444,7 +442,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 			if _, mdErr := os.Stat(mdFilePath); mdErr == nil {
 				// .md file exists, use its parent directory for attachments
 				dirPath = filepath.Dir(mdFilePath)
-				isMarkdownDoc = true
 			} else {
 				// Neither directory nor .md file exists
 				w.WriteHeader(http.StatusNotFound)
@@ -466,7 +463,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	} else if !fileInfo.IsDir() {
 		// Path exists but is a file (not a directory), use its parent directory
 		dirPath = filepath.Dir(dirPath)
-		isMarkdownDoc = true
 	}
 
 	// Read the directory contents
@@ -507,16 +503,10 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		}
 
 		// Create URL path for the file
-		var urlPath string
-		if isMarkdownDoc {
-			// For .md files, use parent directory in URL
-			urlPath = filepath.Join("/api/files", filepath.Dir(path), file.Name())
-			log.Printf("ListFilesHandler: .md doc URL=%s (path=%s, filename=%s)", urlPath, path, file.Name())
-		} else {
-			// For directory-based documents (including old structure with document.md), include full path
-			urlPath = filepath.Join("/api/files", path, file.Name())
-			log.Printf("ListFilesHandler: dir doc URL=%s (path=%s, filename=%s)", urlPath, path, file.Name())
-		}
+		// Always use full relative path (directory + filename) to support nested directories
+		// This works for both regular directories and hidden directories (.opencode/, etc.)
+		urlPath := filepath.Join("/api/files", path, file.Name())
+		log.Printf("ListFilesHandler: file URL=%s (path=%s, filename=%s)", urlPath, path, file.Name())
 		// Replace backslashes with forward slashes for URLs
 		urlPath = strings.ReplaceAll(urlPath, "\\", "/")
 
