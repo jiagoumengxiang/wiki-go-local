@@ -366,6 +366,21 @@ func SaveConfig(cfg *Config, w io.Writer) error {
 	return err
 }
 
+// GetDocumentsDir returns the effective documents directory path.
+// If cfg.Wiki.DocumentsDir is empty, returns the current working directory.
+// Otherwise, returns root_dir + documents_dir joined path.
+func GetDocumentsDir(cfg *Config) string {
+	if cfg.Wiki.DocumentsDir == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			// Fallback to root_dir if we can't get working directory
+			return cfg.Wiki.RootDir
+		}
+		return wd
+	}
+	return filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+}
+
 // ensureCompleteConfig regenerates the configuration file using the current template and
 // writes it back to disk ONLY if the newly rendered file differs from what already exists.
 // This means that when new settings are added to the application template, running the app
