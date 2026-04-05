@@ -22,13 +22,27 @@ type NavItem struct {
 	IsActive bool
 }
 
-// GetDocumentTitle extracts the first H1 title from document.md
-func GetDocumentTitle(dirPath string) string {
-	docPath := filepath.Join(dirPath, "document.md")
+// GetDocumentTitle extracts the first H1 title from a markdown file
+// If filePath ends with .md, reads that file directly
+// Otherwise, looks for document.md in the directory
+func GetDocumentTitle(filePath string) string {
+	var docPath string
+
+	// Check if filePath is a .md file or a directory
+	if strings.HasSuffix(filePath, ".md") {
+		docPath = filePath
+	} else {
+		docPath = filepath.Join(filePath, "document.md")
+	}
+
 	file, err := os.Open(docPath)
 	if err != nil {
-		// If no document.md or can't read it, use directory name
-		return FormatDirName(filepath.Base(dirPath))
+		// If no document.md or can't read it, use file/directory name
+		name := filepath.Base(filePath)
+		if strings.HasSuffix(name, ".md") {
+			return FormatFileName(name)
+		}
+		return FormatDirName(name)
 	}
 	defer file.Close()
 
@@ -43,8 +57,12 @@ func GetDocumentTitle(dirPath string) string {
 		}
 	}
 
-	// If no H1 found, use directory name
-	return FormatDirName(filepath.Base(dirPath))
+	// If no H1 found, use file/directory name
+	name := filepath.Base(filePath)
+	if strings.HasSuffix(name, ".md") {
+		return FormatFileName(name)
+	}
+	return FormatDirName(name)
 }
 
 // FormatDirName formats a directory name by replacing dashes with spaces and title casing
@@ -102,13 +120,13 @@ func BuildNavigation(rootDir string, documentsDir string) (*types.NavItem, error
 			return err
 		}
 
-		// Skip the documents directory itself and non-directories
-		if path == docsPath || !info.IsDir() {
+		// Skip the documents directory itself
+		if path == docsPath {
 			return nil
 		}
 
-		// Skip document.md files
-		if filepath.Base(path) == "document.md" {
+		// Skip non-directories and non-.md files
+		if !info.IsDir() && !strings.HasSuffix(path, ".md") {
 			return nil
 		}
 
@@ -122,45 +140,84 @@ func BuildNavigation(rootDir string, documentsDir string) (*types.NavItem, error
 		relPath = strings.TrimPrefix(relPath, string(os.PathSeparator))
 		relPath = filepath.ToSlash(relPath)
 
-		// Get the title from document.md's H1 or fallback to formatted directory name
-		title := GetDocumentTitle(path)
-
 		// Split the path into components
 		parts := strings.Split(relPath, "/")
 		current := root
 
-		// Build the directory structure
-		for i := 0; i < len(parts); i++ {
-			// Create URL path with dashes
-			urlPath := "/" + ToURLPath(filepath.ToSlash(filepath.Join(parts[:i+1]...)))
+		if info.IsDir() {
+			// It's a directory - build directory structure
+			// Get the title from document.md's H1 or fallback to formatted directory name
+			title := GetDocumentTitle(path)
 
-			// Look for existing directory at this level
-			var found *types.NavItem
-			for _, child := range current.Children {
-				if child.Path == urlPath {
-					found = child
-					break
+			// Build the directory structure
+			for i := 0; i < len(parts); i++ {
+				// Create URL path with dashes
+				urlPath := "/" + ToURLPath(filepath.ToSlash(filepath.Join(parts[:i+1]...)))
+
+				// Look for existing directory at this level
+				var found *types.NavItem
+				for _, child := range current.Children {
+					if child.Path == urlPath {
+						found = child
+						break
+					}
 				}
+
+				if found == nil {
+					// Create new directory item
+					dirTitle := ""
+					if i == len(parts)-1 {
+						dirTitle = title // Use document.md title for leaf nodes
+					} else {
+						dirTitle = FormatDirName(parts[i])
+					}
+
+					found = &types.NavItem{
+						Title:    dirTitle,
+						Path:     urlPath,
+						IsDir:    true,
+						Children: make([]*types.NavItem, 0),
+					}
+					current.Children = append(current.Children, found)
+				}
+				current = found
+			}
+		} else {
+			// It's a .md file - create a file node (leaf node)
+			// Extract title from file's H1 or use formatted filename
+			title := GetDocumentTitle(path)
+			if title == FormatDirName(filepath.Base(path)) {
+				// If no H1 found, use FormatFileName
+				title = FormatFileName(filepath.Base(path))
 			}
 
-			if found == nil {
-				// Create new directory item
-				dirTitle := ""
-				if i == len(parts)-1 {
-					dirTitle = title // Use document.md title for leaf nodes
-				} else {
-					dirTitle = FormatDirName(parts[i])
-				}
+			// Create URL path including .md extension
+			urlPath := "/" + ToURLPath(relPath)
 
-				found = &types.NavItem{
-					Title:    dirTitle,
+			// Find the parent directory to add this file to
+			if len(parts) > 1 {
+				parentPath := "/" + ToURLPath(filepath.ToSlash(filepath.Join(parts[:len(parts)-1]...)))
+				parent := FindNavItem(root, parentPath)
+				if parent != nil {
+					// Add the file as a child of the parent directory
+					fileNode := &types.NavItem{
+						Title:    title,
+						Path:     urlPath,
+						IsDir:    false,
+						Children: nil, // Files have no children
+					}
+					parent.Children = append(parent.Children, fileNode)
+				}
+			} else {
+				// File is at the root level, add directly to root
+				fileNode := &types.NavItem{
+					Title:    title,
 					Path:     urlPath,
-					IsDir:    true,
-					Children: make([]*types.NavItem, 0),
+					IsDir:    false,
+					Children: nil,
 				}
-				current.Children = append(current.Children, found)
+				root.Children = append(root.Children, fileNode)
 			}
-			current = found
 		}
 
 		return nil
