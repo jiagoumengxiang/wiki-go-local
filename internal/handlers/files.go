@@ -117,6 +117,8 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		docPath = "pages/home"
 	}
 
+	log.Printf("UploadFileHandler: docPath=%s", docPath)
+
 	// Determine the full filesystem path to the document's directory
 	var uploadDir string
 	var isMarkdownDoc bool
@@ -290,9 +292,11 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		if isMarkdownDoc {
 			// For .md files, use parent directory in URL
 			urlPath = filepath.Join("/api/files", filepath.Dir(docPath), filename)
+			log.Printf("UploadFileHandler: .md doc URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
 		} else {
 			// For directory-based documents (including old structure with document.md), include full path
 			urlPath = filepath.Join("/api/files", docPath, filename)
+			log.Printf("UploadFileHandler: dir doc URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
 		}
 		// Replace backslashes with forward slashes for URLs
 		urlPath = strings.ReplaceAll(urlPath, "\\", "/")
@@ -309,6 +313,7 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 
 	// Full path where the file will be saved
 	savePath := filepath.Join(uploadDir, filename)
+	log.Printf("UploadFileHandler: savePath=%s", savePath)
 
 	// Create destination file
 	dst, err := os.Create(savePath)
@@ -338,9 +343,11 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	if isMarkdownDoc {
 		// For .md files, use parent directory in URL
 		urlPath = filepath.Join("/api/files", filepath.Dir(docPath), filename)
+		log.Printf("UploadFileHandler: .md doc URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
 	} else {
 		// For directory-based documents (including old structure with document.md), include full path
 		urlPath = filepath.Join("/api/files", docPath, filename)
+		log.Printf("UploadFileHandler: dir doc URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
 	}
 	// Replace backslashes with forward slashes for URLs
 	urlPath = strings.ReplaceAll(urlPath, "\\", "/")

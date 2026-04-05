@@ -34,6 +34,15 @@ function getCurrentDocPath() {
         path = path.substring(0, path.length - 3);
     }
 
+    // If /document exists at the end, remove it for old directory structure
+    // Old structure: /-opencode/ttttt/document -> -opencode/ttttt
+    // New structure: /-opencode/ttttt.md -> -opencode/ttttt
+    const lastSegment = path.split('/').pop();
+    if (lastSegment === 'document') {
+        path = path.substring(0, path.length - '/document'.length);
+        console.log("Removed '/document' from path for old directory structure");
+    }
+
     console.log("Processed document path:", path);
     return path || 'pages/home';
 }
