@@ -41,9 +41,9 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 ## Quick Tasks
 
-| Task ID | Description | Status | Completed |
-|---------|-------------|--------|-----------|
-| 260405-cpb | Fix dot folder file listing | ✅ Complete | 2026-04-05 |
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260405-cpb | Fix dot folder path handling to list MD files | 2026-04-05 | f274e86 | [260405-cpb-xxx-md](./quick/260405-cpb-xxx-md/) |
 
 ## Recent Activity
 
@@ -63,10 +63,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
   - Milestone artifacts archived
   - Git tag v1.0 created
 
-- **2026-04-05**: Quick task 260405-cpb completed
-  - Fixed dot folder path handling in PageHandler
-  - filepath.Join bug causing dot folders to fail resolved
-  - Commit: f274e86
+- **2026-04-05**: Completed quick task 260405-cpb: Fix dot folder path handling to list MD files
 
 ## Notes
 
