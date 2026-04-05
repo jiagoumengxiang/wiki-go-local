@@ -38,3 +38,75 @@ files:
 **具体修改：**
 - `internal/handlers/files.go` - UploadFileHandler 路径逻辑
 - 可能需要更新附件检索逻辑以支持 .md 文件的附件
+
+## Implementation
+
+**Completed:** 2026-04-05
+
+**Changes made:**
+
+1. **UploadFileHandler** (lines 129-133):
+   - Added check for `.md` file suffix
+   - Use `filepath.Dir()` to get parent directory for `.md` files
+   - Attachments are stored in the same directory as the `.md` file
+
+2. **ListFilesHandler** (lines 377-381):
+   - Added same `.md` file detection logic
+   - Lists files in parent directory for `.md` documents
+
+3. **DeleteFileHandler** (lines 511-521):
+   - Handle paths like `docs/myfile.md/attachment.jpg`
+   - Extract filename and use parent directory
+   - Correctly delete attachment files
+
+4. **ServeFileHandler** (lines 587-639):
+   - Parse paths with `.md` files for access control
+   - Use parent directory for permission checks
+   - Reconstruct correct file path for serving attachments
+
+**Storage structure:**
+- Old: `data/documents/docs/mydocument/attachment.jpg` (directory-based)
+- New: `data/documents/docs/myfile.md` + `data/documents/docs/attachment.jpg` (file-based)
+
+**Backward compatibility:**
+- Old directory-based documents still work
+- New `.md` file-based documents now support attachments
+- No breaking changes to existing functionality
+
+**Commit:** a32db2c - "fix: support file attachments for .md document files"
+
+## Improved Fix (2026-04-05)
+
+**Problem discovered:**
+The initial fix only worked when the path included the `.md` suffix, but the frontend's `getCurrentDocPath()` function removes the `.md` suffix before sending it to the backend.
+
+**Additional changes made:**
+
+Updated all file handlers to properly handle paths without `.md` suffix:
+
+1. **UploadFileHandler** (lines 119-157):
+   - Check if path exists (old directory structure)
+   - If not, check if `path + ".md"` exists (new file structure)
+   - If `.md` file exists, use its parent directory
+   - Also handle case where path exists but is a file
+
+2. **ListFilesHandler** (lines 389-437):
+   - Same logic as UploadFileHandler
+   - Check for both directory and `.md` file structures
+
+3. **DeleteFileHandler** (lines 545-584):
+   - Parse path to extract document and attachment parts
+   - Check if document is a `.md` file by appending `.md`
+   - Reconstruct correct file path for deletion
+
+4. **ServeFileHandler** (lines 617-779):
+   - Enhanced path parsing to detect `.md` files without `.md` in path
+   - Updated access control logic for `.md` files
+   - Handle file path reconstruction for serving attachments
+
+**Testing:**
+- ✅ Code compiles successfully
+- ✅ Handles both old directory-based and new file-based documents
+- ✅ No breaking changes to existing functionality
+
+**Commit:** c79c29d - "fix: properly handle .md document paths without .md suffix"
