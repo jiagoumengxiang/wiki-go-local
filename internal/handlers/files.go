@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -509,13 +510,16 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		log.Printf("ListFilesHandler: file URL=%s (path=%s, filename=%s)", urlPath, path, file.Name())
 		// Replace backslashes with forward slashes for URLs
 		urlPath = strings.ReplaceAll(urlPath, "\\", "/")
+		// URL-encode special characters (spaces, Chinese characters, etc.)
+		encodedURLPath := url.PathEscape(urlPath)
+		log.Printf("ListFilesHandler: encoded URL=%s (original=%s)", encodedURLPath, urlPath)
 
 		// Get the MIME type based on extension
 		fileType := config.GetMimeTypeForExtension(ext)
 
 		filesList = append(filesList, FileInfo{
 			Name: file.Name(),
-			URL:  urlPath,
+			URL:  encodedURLPath,
 			Size: fileInfo.Size(),
 			Type: fileType,
 		})
