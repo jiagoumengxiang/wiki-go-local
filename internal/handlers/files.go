@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -374,6 +375,9 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 	// Remove leading slash if present
 	path = strings.TrimPrefix(path, "/")
 
+	// Log for debugging
+	log.Printf("ListFilesHandler: path=%s", path)
+
 	// Special case for homepage
 	if path == "" || path == "/" {
 		path = "pages/home"
@@ -415,10 +419,13 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		dirPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
 	}
 
+	log.Printf("ListFilesHandler: initial dirPath=%s", dirPath)
+
 	// Handle .md file paths - use parent directory for attachments
 	if strings.HasSuffix(strings.ToLower(path), ".md") {
 		dirPath = filepath.Dir(dirPath)
 		isMarkdownDoc = true
+		log.Printf("ListFilesHandler: .md file detected, dirPath=%s", dirPath)
 	}
 
 	// Check if directory exists
@@ -497,9 +504,11 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		if isMarkdownDoc {
 			// For .md files, use parent directory in URL
 			urlPath = filepath.Join("/api/files", filepath.Dir(path), file.Name())
+			log.Printf("ListFilesHandler: .md doc URL=%s (path=%s, filename=%s)", urlPath, path, file.Name())
 		} else {
 			// For directory-based documents (including old structure with document.md), include full path
 			urlPath = filepath.Join("/api/files", path, file.Name())
+			log.Printf("ListFilesHandler: dir doc URL=%s (path=%s, filename=%s)", urlPath, path, file.Name())
 		}
 		// Replace backslashes with forward slashes for URLs
 		urlPath = strings.ReplaceAll(urlPath, "\\", "/")
