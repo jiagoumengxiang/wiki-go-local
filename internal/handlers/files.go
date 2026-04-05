@@ -122,7 +122,6 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 
 	// Determine the full filesystem path to the document's directory
 	var uploadDir string
-	var isMarkdownDoc bool
 	if strings.HasPrefix(docPath, "pages/") {
 		// For pages directory (like homepage), don't add the documents directory
 		uploadDir = filepath.Join(cfg.Wiki.RootDir, docPath)
@@ -134,7 +133,6 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	// Handle .md file paths - use parent directory for attachments
 	if strings.HasSuffix(strings.ToLower(docPath), ".md") {
 		uploadDir = filepath.Dir(uploadDir)
-		isMarkdownDoc = true
 	}
 
 	// Check if directory exists
@@ -146,7 +144,6 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 			if _, mdErr := os.Stat(mdFilePath); mdErr == nil {
 				// .md file exists, use its parent directory for attachments
 				uploadDir = filepath.Dir(mdFilePath)
-				isMarkdownDoc = true
 			} else {
 				// Neither directory nor .md file exists
 				w.WriteHeader(http.StatusBadRequest)
@@ -168,7 +165,6 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	} else if !fileInfo.IsDir() {
 		// Path exists but is a file (not a directory), use its parent directory
 		uploadDir = filepath.Dir(uploadDir)
-		isMarkdownDoc = true
 	}
 
 	// Get the uploaded file
@@ -289,18 +285,14 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		}
 
 		// Create URL path for the file
-		var urlPath string
-		if isMarkdownDoc {
-			// For .md files, use parent directory in URL
-			urlPath = filepath.Join("/api/files", filepath.Dir(docPath), filename)
-			log.Printf("UploadFileHandler: .md doc URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
-		} else {
-			// For directory-based documents (including old structure with document.md), include full path
-			urlPath = filepath.Join("/api/files", docPath, filename)
-			log.Printf("UploadFileHandler: dir doc URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
-		}
+		// Always use full path to match ListFilesHandler behavior
+		urlPath := filepath.Join("/api/files", docPath, filename)
+		log.Printf("UploadFileHandler: URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
 		// Replace backslashes with forward slashes for URLs
 		urlPath = strings.ReplaceAll(urlPath, "\\", "/")
+		// URL-encode special characters (spaces, Chinese characters, etc.)
+		urlPath = url.PathEscape(urlPath)
+		log.Printf("UploadFileHandler: encoded URL=%s (original=%s)", urlPath, filepath.Join("/api/files", docPath, filename))
 
 		// Return success response
 		w.WriteHeader(http.StatusOK)
@@ -340,18 +332,14 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	}
 
 	// Create URL path for the file
-	var urlPath string
-	if isMarkdownDoc {
-		// For .md files, use parent directory in URL
-		urlPath = filepath.Join("/api/files", filepath.Dir(docPath), filename)
-		log.Printf("UploadFileHandler: .md doc URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
-	} else {
-		// For directory-based documents (including old structure with document.md), include full path
-		urlPath = filepath.Join("/api/files", docPath, filename)
-		log.Printf("UploadFileHandler: dir doc URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
-	}
+	// Always use full path to match ListFilesHandler behavior
+	urlPath := filepath.Join("/api/files", docPath, filename)
+	log.Printf("UploadFileHandler: URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
 	// Replace backslashes with forward slashes for URLs
 	urlPath = strings.ReplaceAll(urlPath, "\\", "/")
+	// URL-encode special characters (spaces, Chinese characters, etc.)
+	urlPath = url.PathEscape(urlPath)
+	log.Printf("UploadFileHandler: encoded URL=%s (original=%s)", urlPath, filepath.Join("/api/files", docPath, filename))
 
 	// Return success response
 	w.WriteHeader(http.StatusOK)
