@@ -892,7 +892,8 @@ func sanitizeFilename(filename string) string {
 	filename = filepath.Base(filename)
 
 	// Replace potentially problematic characters
-	filename = strings.ReplaceAll(filename, " ", "_")
+	// Note: We preserve spaces to avoid corrupting multi-byte UTF-8 characters
+	// (e.g., Chinese characters with spaces between them would be damaged by replacing spaces)
 	filename = strings.ReplaceAll(filename, "#", "")
 	filename = strings.ReplaceAll(filename, "%", "")
 	filename = strings.ReplaceAll(filename, "&", "")
