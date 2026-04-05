@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: 隐藏文件读取功能
 current_phase: null
 status: Milestone complete
-last_updated: "2026-04-05T01:00:00Z"
+last_updated: "2026-04-05T01:16:30Z"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -39,6 +39,12 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 |----------|--------|---------|
 | v1.0 隐藏文件读取功能 | ✅ Complete | 2026-04-05 |
 
+## Quick Tasks
+
+| Task ID | Description | Status | Completed |
+|---------|-------------|--------|-----------|
+| 260405-cpb | Fix dot folder file listing | ✅ Complete | 2026-04-05 |
+
 ## Recent Activity
 
 - **2025-04-05**: Project initialized
@@ -56,6 +62,11 @@ See: .planning/PROJECT.md (updated 2026-04-05)
   - All 18 requirements completed
   - Milestone artifacts archived
   - Git tag v1.0 created
+
+- **2026-04-05**: Quick task 260405-cpb completed
+  - Fixed dot folder path handling in PageHandler
+  - filepath.Join bug causing dot folders to fail resolved
+  - Commit: f274e86
 
 ## Notes
 
