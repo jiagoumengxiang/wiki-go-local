@@ -102,18 +102,43 @@ func PageHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 
 	// Check if path exists
 	info, err := os.Stat(fsPath)
-	if err != nil || !info.IsDir() {
+	if err != nil {
 		NotFoundHandler(w, r, cfg)
 		return
 	}
 
+	// Check if this is a .md file or a directory
+	isFile := !info.IsDir() && strings.HasSuffix(decodedPath, ".md")
+
 	// Find the navigation item for breadcrumbs
-	navItem := utils.FindNavItem(nav, path)
-	if navItem == nil {
+	var navItem *types.NavItem
+	if isFile {
+		// For files, find the parent directory nav item
+		dirPath := filepath.Dir(path)
+		navItem = utils.FindNavItem(nav, dirPath)
+		if navItem == nil {
+			// Fallback to parent directory title
+			navItem = &types.NavItem{
+				Title: utils.FormatDirName(filepath.Base(dirPath)),
+				Path:  dirPath,
+				IsDir: true,
+			}
+		}
+		// Override title for file display
 		navItem = &types.NavItem{
-			Title: utils.FormatDirName(filepath.Base(decodedPath)),
-			Path:  path,
-			IsDir: true,
+			Title:          utils.GetDocumentTitle(fsPath),
+			Path:           path,
+			IsDir:          false,
+			DocumentLayout: "",
+		}
+	} else {
+		navItem = utils.FindNavItem(nav, path)
+		if navItem == nil {
+			navItem = &types.NavItem{
+				Title: utils.FormatDirName(filepath.Base(decodedPath)),
+				Path:  path,
+				IsDir: true,
+			}
 		}
 	}
 
@@ -124,13 +149,16 @@ func PageHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 	var lastModified time.Time
 	var dirContent template.HTML
 	var rawContent string // Raw markdown content for edit mode
+	var docPath string    // Path to the document (for comments)
+	var isDocument bool   // Whether this is a document page
 
-	// Look for document.md in the directory
-	docPath := filepath.Join(fsPath, "document.md")
-	docInfo, err := os.Stat(docPath)
-	if err == nil {
-		// Read and render document.md if it exists
-		mdContent, err := os.ReadFile(docPath)
+	// If it's a .md file, render it directly
+	if isFile {
+		docPath = fsPath
+		isDocument = true
+
+		// Read and render the .md file
+		mdContent, err := os.ReadFile(fsPath)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -148,65 +176,117 @@ func PageHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 			documentLayout = metadata.Layout
 		}
 
-		// Use the document path for rendering to handle local file references
-		content = template.HTML(utils.RenderMarkdownWithPath(string(mdContent), decodedPath))
+		// Use the file path for rendering to handle local file references
+		// Get the directory path for resolving relative links
+		fileDir := filepath.Dir(decodedPath)
+		content = template.HTML(utils.RenderMarkdownWithPath(string(mdContent), fileDir))
 
-		// If content is empty but document exists, ensure we have something truthy for template conditions
+		// If content is empty but file exists, ensure we have something truthy for template conditions
 		if strings.TrimSpace(string(content)) == "" {
 			content = template.HTML(" ") // Single space to make it truthy but effectively empty
 		}
 
-		lastModified = docInfo.ModTime()
+		lastModified = info.ModTime()
 
 		// Update the document layout in the page data
 		navItem.DocumentLayout = documentLayout
-	}
+	} else {
+		// It's a directory, look for document.md
+		docPath = filepath.Join(fsPath, "document.md")
+		docInfo, err := os.Stat(docPath)
+		if err == nil {
+			isDocument = true
 
-	// List directory contents
-	files, err := os.ReadDir(fsPath)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+			// Read and render document.md if it exists
+			mdContent, err := os.ReadFile(docPath)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 
-	// Build directory listing HTML
-	var dirItems []string
-	for _, f := range files {
-		if !f.IsDir() || f.Name() == "document.md" {
-			continue // Skip non-directories and document.md
+			// If in edit mode, store raw content with frontmatter preserved
+			if isEditMode {
+				rawContent = string(mdContent)
+			}
+
+			// Parse frontmatter to get document layout
+			metadata, _, hasFrontmatter := frontmatter.Parse(string(mdContent))
+			documentLayout := ""
+			if hasFrontmatter {
+				documentLayout = metadata.Layout
+			}
+
+			// Use the document path for rendering to handle local file references
+			content = template.HTML(utils.RenderMarkdownWithPath(string(mdContent), decodedPath))
+
+			// If content is empty but document exists, ensure we have something truthy for template conditions
+			if strings.TrimSpace(string(content)) == "" {
+				content = template.HTML(" ") // Single space to make it truthy but effectively empty
+			}
+
+			lastModified = docInfo.ModTime()
+
+			// Update the document layout in the page data
+			navItem.DocumentLayout = documentLayout
 		}
 
-		dirName := f.Name()
-		urlPath := filepath.Join(path, dirName)
-
-		// Check if subdirectory has a document.md
-		subDocPath := filepath.Join(fsPath, dirName, "document.md")
-		if _, err := os.Stat(subDocPath); err == nil {
-			// Use the GetDocumentTitle function which includes emoji processing
-			dirTitle := utils.GetDocumentTitle(filepath.Join(fsPath, dirName))
-			dirItems = append(dirItems, fmt.Sprintf(`<div class="directory-item is-dir"><a href="%s">%s</a></div>`,
-				urlPath, dirTitle))
-			continue
+		// List directory contents
+		files, err := os.ReadDir(fsPath)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
-		// Fallback to formatted directory name if no document.md or no title found
-		dirTitle := utils.FormatDirName(dirName)
-		dirItems = append(dirItems, fmt.Sprintf(`<div class="directory-item is-dir"><a href="%s">%s</a></div>`,
-			urlPath, dirTitle))
-	}
+		// Build directory listing HTML
+		var dirItems []string
+		for _, f := range files {
+			if f.IsDir() {
+				// Handle subdirectories
+				dirName := f.Name()
+				urlPath := filepath.Join(path, dirName)
 
-	if len(dirItems) > 0 {
-		dirContent = template.HTML(strings.Join(dirItems, "\n"))
-	}
+				// Check if subdirectory has a document.md
+				subDocPath := filepath.Join(fsPath, dirName, "document.md")
+				if _, err := os.Stat(subDocPath); err == nil {
+					// Use the GetDocumentTitle function which includes emoji processing
+					dirTitle := utils.GetDocumentTitle(filepath.Join(fsPath, dirName))
+					dirItems = append(dirItems, fmt.Sprintf(`<div class="directory-item is-dir"><a href="%s">%s</a></div>`,
+						urlPath, dirTitle))
+					continue
+				}
 
-	// If no document.md exists, show directory title and listing
-	if docInfo == nil {
-		content = template.HTML(fmt.Sprintf("<h1>%s</h1>", navItem.Title))
-		lastModified = info.ModTime()
-	}
+				// Fallback to formatted directory name if no document.md or no title found
+				dirTitle := utils.FormatDirName(dirName)
+				dirItems = append(dirItems, fmt.Sprintf(`<div class="directory-item is-dir"><a href="%s">%s</a></div>`,
+					urlPath, dirTitle))
+			} else if strings.HasSuffix(f.Name(), ".md") && f.Name() != "document.md" {
+				// Handle .md files (except document.md which is already shown as the page content)
+				fileName := f.Name()
+				urlPath := filepath.Join(path, fileName)
 
-	// Check if this is a document (not a directory) by checking if there's content and no trailing slash
-	isDocument := docInfo != nil && content != "" && !strings.HasSuffix(r.URL.Path, "/")
+				// Get the title from the file or use formatted filename
+				filePath := filepath.Join(fsPath, fileName)
+				fileTitle := utils.GetDocumentTitle(filePath)
+				if fileTitle == utils.FormatDirName(filepath.Base(filePath)) {
+					// If no H1 found, use FormatFileName
+					fileTitle = utils.FormatFileName(fileName)
+				}
+
+				dirItems = append(dirItems, fmt.Sprintf(`<div class="directory-item is-file"><a href="%s">%s</a></div>`,
+					urlPath, fileTitle))
+			}
+		}
+
+		if len(dirItems) > 0 {
+			dirContent = template.HTML(strings.Join(dirItems, "\n"))
+		}
+
+		// If no document.md exists, show directory title and listing
+		if docInfo == nil {
+			content = template.HTML(fmt.Sprintf("<h1>%s</h1>", navItem.Title))
+			lastModified = info.ModTime()
+		}
+	}
 
 	// Get authentication status for ALL pages
 	var commentsList []comments.Comment

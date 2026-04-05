@@ -57,6 +57,20 @@ func FormatDirName(name string) string {
 	return titleCaser.String(name)
 }
 
+// FormatFileName formats a .md filename by removing the extension, replacing underscores/hyphens with spaces, and title casing
+func FormatFileName(name string) string {
+	// Remove .md extension
+	name = strings.TrimSuffix(name, ".md")
+
+	// Replace underscores and hyphens with spaces
+	name = strings.ReplaceAll(name, "_", " ")
+	name = strings.ReplaceAll(name, "-", " ")
+
+	// Title case the words using cases package
+	titleCaser := cases.Title(language.English)
+	return titleCaser.String(name)
+}
+
 // ToURLPath converts a filesystem path to a URL path
 func ToURLPath(path string) string {
 	// Convert spaces to dashes

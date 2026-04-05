@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+wiki-go
 
 # Build directory
 /build/
