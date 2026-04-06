@@ -206,7 +206,19 @@
         if (currentPath && currentPath !== '/') {
             // Remove leading and trailing slashes
             let path = currentPath.replace(/^\/|\/$/g, '');
-            // Use the full current path as the parent directory for the new document
+
+            // If path ends with .md, strip the filename to use parent directory
+            if (path.endsWith('.md')) {
+                const lastSlash = path.lastIndexOf('/');
+                if (lastSlash !== -1) {
+                    path = path.substring(0, lastSlash);
+                } else {
+                    // File is at root, use empty path
+                    path = '';
+                }
+            }
+
+            // Use path as the parent directory for the new document
             docPathInput.value = path;
         }
 
