@@ -203,6 +203,20 @@ func LinkPreprocessor(markdown string, docPath string) string {
 	return joinSections(sections)
 }
 
+// getDocDir returns the directory path from a document path
+// If docPath ends with .md, it strips the filename and returns the directory
+func getDocDir(docPath string) string {
+	docPath = strings.TrimLeft(docPath, "/")
+	if docPath == "" || docPath == "/" {
+		return ""
+	}
+	// If the path ends with .md, extract the directory
+	if strings.HasSuffix(docPath, ".md") {
+		return filepath.Dir(docPath)
+	}
+	return docPath
+}
+
 // isLocalPath returns true if the path is a local file reference
 func isLocalPath(path string) bool {
 	// Skip URLs with schemes (http://, https://, ftp://, etc)
@@ -244,11 +258,12 @@ func getAttachmentPath(path, docPath string) string {
 		}
 		return "data/pages/home/" + path
 	}
-	// For regular documents, use the configured documents directory
+	// For regular documents, extract the directory from docPath and use the configured documents directory
+	docDir := getDocDir(docPath)
 	if GetDocumentsDirFunc != nil {
-		return filepath.Join(GetDocumentsDirFunc(docPath), path)
+		return filepath.Join(GetDocumentsDirFunc(docDir), path)
 	}
-	return "data/documents/" + docPath + "/" + path
+	return "data/documents/" + docDir + "/" + path
 }
 
 // resolveLocalPath resolves a local path relative to the document path
@@ -267,8 +282,9 @@ func resolveLocalPath(path, docPath string) string {
 		return result
 	}
 
-	// Regular document files
-	result := "/api/files/" + docPath + "/" + escapedPath
-	// fmt.Printf("[resolveLocalPath] docPath: '%s', path: '%s', result: '%s'\n", docPath, path, result)
+	// Regular document files - extract directory from docPath to avoid including filename
+	docDir := getDocDir(docPath)
+	result := "/api/files/" + docDir + "/" + escapedPath
+	// fmt.Printf("[resolveLocalPath] docPath: '%s', path: '%s', docDir: '%s', result: '%s'\n", docPath, path, docDir, result)
 	return result
 }

@@ -26,8 +26,9 @@ func TransformMP4Path(videoPath string, docPath string) string {
 		return "/api/files/pages/home/" + escapedPath
 	}
 
-	// Regular document files
-	return "/api/files/" + docPath + "/" + escapedPath
+	// Regular document files - extract directory from docPath to avoid including filename
+	docDir := getDocDir(docPath)
+	return "/api/files/" + docDir + "/" + escapedPath
 }
 
 // MP4Preprocessor transforms MP4 code blocks into HTML video elements
