@@ -132,7 +132,11 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 
 	// Handle .md file paths - use parent directory for attachments
 	if strings.HasSuffix(strings.ToLower(docPath), ".md") {
-		uploadDir = filepath.Dir(uploadDir)
+		// For .md files, we need to get the parent directory
+		// Remove the .md filename from docPath first
+		docPathWithoutMd := docPath[:len(docPath)-3]
+		// Rebuild the path without the .md file
+		uploadDir = filepath.Join(config.GetDocumentsDir(cfg), filepath.Dir(docPathWithoutMd))
 	}
 
 	// Check if directory exists
@@ -415,7 +419,11 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 
 	// Handle .md file paths - use parent directory for attachments
 	if strings.HasSuffix(strings.ToLower(path), ".md") {
-		dirPath = filepath.Dir(dirPath)
+		// For .md files, we need to get the parent directory
+		// Remove the .md filename from path first
+		pathWithoutMd := path[:len(path)-3]
+		// Rebuild the path without the .md file
+		dirPath = filepath.Join(config.GetDocumentsDir(cfg), filepath.Dir(pathWithoutMd))
 		log.Printf("ListFilesHandler: .md file detected, dirPath=%s", dirPath)
 	}
 
