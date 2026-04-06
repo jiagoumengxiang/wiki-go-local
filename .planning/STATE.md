@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: 隐藏文件读取功能
 current_phase: null
 status: Milestone complete
-last_updated: "2026-04-06T10:08:00Z"
+last_updated: "2026-04-06T10:15:00Z"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -54,6 +54,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 | 260406-dwf | Fix file upload and download paths for .md files in root directory | 2026-04-06 | ceb497b | [260406-dwf-fix-file-upload-download-paths](./quick/260406-dwf-fix-file-upload-download-paths/) |
 | 260406-exz | Fix .md file path resolution in ListFilesHandler | 2026-04-06 | cb47cd9 | [260406-exz-fix-md-path-resolution](./quick/260406-exz-fix-md-path-resolution/) |
 | 260406-fyq | Fix frontend docPath to keep .md extension | 2026-04-06 | 20fe9ca | [260406-fyq-fix-frontend-docpath-for-md-files](./quick/260406-fyq-fix-frontend-docpath-for-md-files/) |
+| 260406-ehp | Fix hidden directory handling when creating documents | 2026-04-06 | bb1aebf | [260406-ehp-fix-hidden-directory-handling-when-creat](./quick/260406-ehp-fix-hidden-directory-handling-when-creat/) |
 
 ## Pending Todos
 
@@ -89,6 +90,8 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 - **2026-04-06**: Completed quick task 260406-fyq: Fix frontend docPath to keep .md extension
 
+- **2026-04-06**: Completed quick task 260406-ehp: Fix hidden directory handling when creating documents
+
 ## Notes
 
 - Mode: YOLO (auto-approve)
@@ -99,4 +102,4 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 ---
 
-*Last updated: 2026-04-06 after quick task 260406-fyq completion*
+*Last updated: 2026-04-06 after quick task 260406-ehp completion*
