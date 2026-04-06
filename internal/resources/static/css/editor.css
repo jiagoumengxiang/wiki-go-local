@@ -1025,3 +1025,45 @@
 .editor-preview.kanban-preview .kanban-card {
     margin-bottom: 10px;
 }
+
+/* Fullscreen mode styles */
+.editor-layout.fullscreen-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+    margin: 0;
+}
+
+.editor-layout.fullscreen-mode .custom-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.editor-layout.fullscreen-mode .editor-statusbar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+.editor-layout.fullscreen-mode .CodeMirror {
+    height: calc(100vh - 100px) !important;
+}
+
+.editor-layout.fullscreen-mode .custom-editor-wrapper {
+    height: calc(100vh - 100px);
+}
+
+/* Fullscreen button active state */
+.custom-toolbar button.toggle-fullscreen-button.active {
+    background-color: var(--hover-bg) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}

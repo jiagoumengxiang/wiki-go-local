@@ -415,6 +415,9 @@ async function loadEditor(mainContent, editorContainer, viewToolbar, editToolbar
                 window.EditorThemes.updateCodeMirrorTheme(isDarkMode ? 'dark' : 'light');
             }
 
+            // Setup fullscreen event listeners
+            setupFullscreenListeners();
+
             // Set editor height
             editor.setSize(null, "calc(100vh - 380px)");
 
@@ -537,6 +540,9 @@ function refreshEditor(statusbar) {
 function exitEditMode(mainContent, editorContainer, viewToolbar, editToolbar) {
     // Remove beforeunload handler first
     removeBeforeUnloadHandler();
+
+    // Cleanup fullscreen event listeners
+    cleanupFullscreenListeners();
 
     // Clear any pending preview debounce timer and reset editor mode
     if (window.EditorPreview) {
@@ -742,6 +748,9 @@ function toggleLineNumbers() {
 // Variable to track autocapitalize state
 let autocapitalizeEnabled = false;
 
+// Variable to track fullscreen state
+let isFullscreen = false;
+
 // Function to toggle autocapitalize
 function toggleAutocapitalize() {
     if (!editor) return;
@@ -814,6 +823,127 @@ function toggleAutocapitalize() {
     }
 }
 
+// Function to toggle fullscreen mode
+function toggleFullscreen() {
+    const editorLayout = document.querySelector('.editor-layout');
+    if (!editorLayout) return;
+
+    if (!isFullscreen) {
+        // Enter fullscreen
+        if (editorLayout.requestFullscreen) {
+            editorLayout.requestFullscreen();
+        } else if (editorLayout.webkitRequestFullscreen) { /* Safari */
+            editorLayout.webkitRequestFullscreen();
+        } else if (editorLayout.msRequestFullscreen) { /* IE11 */
+            editorLayout.msRequestFullscreen();
+        }
+    } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// Function to update fullscreen state and UI
+function updateFullscreenState() {
+    const editorLayout = document.querySelector('.editor-layout');
+    const fullscreenButton = document.querySelector('.toggle-fullscreen-button');
+    const isCurrentlyFullscreen = document.fullscreenElement === editorLayout ||
+                                  document.webkitFullscreenElement === editorLayout ||
+                                  document.msFullscreenElement === editorLayout;
+
+    if (isCurrentlyFullscreen !== isFullscreen) {
+        isFullscreen = isCurrentlyFullscreen;
+
+        // Update button appearance
+        if (fullscreenButton) {
+            const getShortcut = window.EditorToolbar && window.EditorToolbar.getShortcut ?
+                window.EditorToolbar.getShortcut : (mac, other) => mac || other;
+
+            const shortcut = getShortcut('Cmd+Shift+F', 'Ctrl+Shift+F');
+
+            if (isFullscreen) {
+                // Fullscreen active - change icon to compress
+                fullscreenButton.classList.add('active');
+                fullscreenButton.title = `Exit Fullscreen (${shortcut})`;
+                fullscreenButton.querySelector('i').className = 'fa fa-compress';
+            } else {
+                // Fullscreen inactive - change icon to expand
+                fullscreenButton.classList.remove('active');
+                fullscreenButton.title = `Toggle Fullscreen (${shortcut})`;
+                fullscreenButton.querySelector('i').className = 'fa fa-expand';
+            }
+        }
+
+        // Add or remove fullscreen class on editor layout
+        if (isFullscreen) {
+            editorLayout.classList.add('fullscreen-mode');
+        } else {
+            editorLayout.classList.remove('fullscreen-mode');
+        }
+
+        // Refresh editor to ensure proper sizing
+        if (editor) {
+            editor.refresh();
+        }
+    }
+}
+
+// Function to handle fullscreen change events
+function handleFullscreenChange() {
+    updateFullscreenState();
+}
+
+// Function to handle ESC key press
+function handleEscKey(e) {
+    if (e.key === 'Escape' && isFullscreen) {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// Function to handle window resize in fullscreen mode
+function handleResize() {
+    if (isFullscreen && editor) {
+        // Refresh editor to adjust to new dimensions
+        editor.refresh();
+    }
+}
+
+// Function to setup fullscreen event listeners
+function setupFullscreenListeners() {
+    // Add fullscreen change event listener
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+    // Add ESC key listener
+    document.addEventListener('keydown', handleEscKey);
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+}
+
+// Function to cleanup fullscreen event listeners
+function cleanupFullscreenListeners() {
+    document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+    document.removeEventListener('keydown', handleEscKey);
+    window.removeEventListener('resize', handleResize);
+}
+
 // Export the module
 window.EditorCore = {
     // Editor management
@@ -833,6 +963,11 @@ window.EditorCore = {
     toggleWordWrap,
     toggleLineNumbers,
     toggleAutocapitalize,
+    toggleFullscreen,
+
+    // Fullscreen management
+    setupFullscreenListeners,
+    cleanupFullscreenListeners,
 
     // Getters
     getEditor: () => editor,

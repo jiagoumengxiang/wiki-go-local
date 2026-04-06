@@ -185,6 +185,7 @@ function createToolbar(container) {
         { icon: 'fa-undo', action: 'undo', title: 'Undo' },
         { icon: 'fa-repeat', action: 'redo', title: 'Redo' },
         { type: 'separator' },
+        { icon: 'fa-expand', action: 'fullscreen', title: `Toggle Fullscreen (${getShortcut('Cmd+Shift+F', 'Ctrl+Shift+F')})`, id: 'toggle-fullscreen' },
         { icon: 'fa-eye', action: 'preview', title: `Toggle Preview (${getShortcut('Cmd+Shift+P', 'Ctrl+Shift+P')})`, id: 'toggle-preview' }
     ];
 
@@ -490,6 +491,9 @@ function setupToolbarActions(toolbar) {
                 break;
             case 'kanban':
                 insertKanbanFrontmatter(editor);
+                break;
+            case 'fullscreen':
+                window.EditorCore.toggleFullscreen();
                 break;
             default:
                 break;
