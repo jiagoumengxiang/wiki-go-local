@@ -28,6 +28,19 @@ function getCurrentDocPath() {
     if (path.endsWith('/')) {
         path = path.substring(0, path.length - 1);
     }
+ 
+    // If /document exists at the end, remove it for old directory structure
+    // Old structure: /-opencode/ttttt/document -> -opencode/ttttt
+    // New structure: /-opencode/ttttt.md -> -opencode/ttttt
+    const lastSegment = path.split('/').pop();
+    if (lastSegment === 'document') {
+        path = path.substring(0, path.length - '/document'.length);
+        console.log("Removed '/document' from path for old directory structure");
+    }
+ 
+    // Note: We now use .md file structure (e.g., .opencode/a.md), so .md files should keep their .md extension
+    // This ensures attachments are stored in the same directory as the .md file
+    // When accessing /.opencode/a.md, docPath should be ".opencode/a.md", not ".opencode/a"
 
     // If .md exists in the path, remove it (some implementations add .md to URLs)
     if (path.endsWith('.md')) {
