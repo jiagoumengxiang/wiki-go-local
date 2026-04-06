@@ -289,8 +289,15 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		}
 
 		// Create URL path for the file
-		// Always use full path to match ListFilesHandler behavior
-		urlPath := filepath.Join("/api/files", docPath, filename)
+		// Use directory path instead of full docPath to avoid including .md filename
+		var urlDocPath string
+		if strings.HasSuffix(strings.ToLower(docPath), ".md") {
+			// For .md files, use parent directory for URL
+			urlDocPath = filepath.Dir(docPath)
+		} else {
+			urlDocPath = docPath
+		}
+		urlPath := filepath.Join("/api/files", urlDocPath, filename)
 		log.Printf("UploadFileHandler: URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
 		// Replace backslashes with forward slashes for URLs
 		urlPath = strings.ReplaceAll(urlPath, "\\", "/")

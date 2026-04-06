@@ -94,7 +94,7 @@ function renderFilesList(files, mentionedFiles) {
             let fileType = FILE_EXTENSION_MIME_TYPES[fileExt] || '';
 
             safeFile = {
-                URL: `/api/files/${getCurrentDocPath()}/${filename}`,
+                URL: `/api/files/${getDocDir(getCurrentDocPath())}/${filename}`,
                 Type: fileType,
                 Name: filename,
                 Size: 0
@@ -102,7 +102,7 @@ function renderFilesList(files, mentionedFiles) {
         } else {
             // Ensure all properties exist with defaults for missing ones
             safeFile = {
-                URL: file.URL || `/api/files/${getCurrentDocPath()}/${file.Name || file.name || 'unknown'}`,
+                URL: file.URL || `/api/files/${getDocDir(getCurrentDocPath())}/${file.Name || file.name || 'unknown'}`,
                 Type: file.Type || file.type || '',
                 Name: file.Name || file.name || 'Unknown file',
                 Size: file.Size || file.size || 0
@@ -452,7 +452,7 @@ function updateFileAttachments(files) {
             let fileType = FILE_EXTENSION_MIME_TYPES[fileExt] || '';
 
             safeFile = {
-                URL: `/api/files/${getCurrentDocPath()}/${filename}`,
+                URL: `/api/files/${getDocDir(getCurrentDocPath())}/${filename}`,
                 Type: fileType,
                 Name: filename,
                 Size: 0
@@ -460,7 +460,7 @@ function updateFileAttachments(files) {
         } else {
             // Ensure all properties exist with defaults for missing ones
             safeFile = {
-                URL: file.URL || `/api/files/${getCurrentDocPath()}/${file.Name || file.name || 'unknown'}`,
+                URL: file.URL || `/api/files/${getDocDir(getCurrentDocPath())}/${file.Name || file.name || 'unknown'}`,
                 Type: file.Type || file.type || '',
                 Name: file.Name || file.name || 'Unknown file',
                 Size: file.Size || file.size || 0

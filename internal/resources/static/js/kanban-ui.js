@@ -51,7 +51,8 @@ class KanbanUIManager {
       // Only rewrite if not absolute or already API path
       if (!/^([\/]|https?:)/.test(url)) {
         var docPath = (typeof getCurrentDocPath === 'function') ? getCurrentDocPath() : '';
-        url = '/api/files/' + docPath + '/' + url;
+        var docDir = (typeof getDocDir === 'function') ? getDocDir(docPath) : docPath;
+        url = '/api/files/' + docDir + '/' + url;
       }
       return '<img src="' + url + '" alt="' + alt + '">';
     });
