@@ -37,24 +37,11 @@ function getCurrentDocPath() {
         path = path.substring(0, path.length - '/document'.length);
         console.log("Removed '/document' from path for old directory structure");
     }
- 
+  
     // Note: We now use .md file structure (e.g., .opencode/a.md), so .md files should keep their .md extension
     // This ensures attachments are stored in the same directory as the .md file
     // When accessing /.opencode/a.md, docPath should be ".opencode/a.md", not ".opencode/a"
-
-    // If .md exists in the path, remove it (some implementations add .md to URLs)
-    if (path.endsWith('.md')) {
-        path = path.substring(0, path.length - 3);
-    }
-
-    // If /document exists at the end, remove it for old directory structure
-    // Old structure: /-opencode/ttttt/document -> -opencode/ttttt
-    // New structure: /-opencode/ttttt.md -> -opencode/ttttt
-    const lastSegment = path.split('/').pop();
-    if (lastSegment === 'document') {
-        path = path.substring(0, path.length - '/document'.length);
-        console.log("Removed '/document' from path for old directory structure");
-    }
+    // Do NOT remove the .md extension - the backend needs it to identify .md file structure
 
     console.log("Processed document path:", path);
     return path || 'pages/home';
