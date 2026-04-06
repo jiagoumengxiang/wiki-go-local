@@ -67,9 +67,6 @@
             }
         });
 
-        // Check if default password is in use
-        checkDefaultPassword();
-
         // Check for pending actions from previous login - remove the delay
         checkPendingActions();
     });

@@ -28,7 +28,6 @@
     .user-confirmation-dialog,
     .version-history-dialog,
     .settings-dialog,
-    .password-warning-banner,
     .page-toolbar {
         display: none !important;
     }

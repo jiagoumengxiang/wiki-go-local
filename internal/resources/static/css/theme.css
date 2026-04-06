@@ -142,21 +142,6 @@ pre > code {
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-/* ---------- Password warning banner ---------- */
-.password-warning-banner {
-    background-color: var(--danger-bg);
-    color: var(--danger-color);
-    text-align: center;
-    padding: 10px;
-    width: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 2000;
-    pointer-events: none; /* Do not block interactions with UI beneath */
-}
-
 /* Global banner for documents */
 .global-banner {
     width: 100%;
@@ -170,18 +155,6 @@ pre > code {
     max-height: 250px;
     object-fit: cover;
     border-radius: 4px;
-}
-
-/* Add padding to body when banner is visible */
-body.has-password-warning {
-    padding-top: 40px;
-}
-
-/* Adjust sidebar when password warning is shown */
-body.has-password-warning .sidebar,
-body.has-password-warning .hamburger {
-    height: calc(100vh - 40px);
-    top: 40px;
 }
 
 .sidebar-footer-buttons {
