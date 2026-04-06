@@ -122,10 +122,11 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	// Determine the full filesystem path to the document's directory
 	var uploadDir string
 	if strings.HasPrefix(docPath, "pages/") {
-		// For pages directory (like homepage), don't add the documents directory
+		// For pages directory (like homepage), pages are in root_dir, not documents_dir
+		// But root_dir might be relative, so resolve it properly
 		uploadDir = filepath.Join(cfg.Wiki.RootDir, docPath)
 	} else {
-		// For regular documents
+		// For regular documents, use the configured documents directory
 		uploadDir = filepath.Join(config.GetDocumentsDir(cfg), docPath)
 	}
 

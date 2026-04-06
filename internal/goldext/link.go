@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
+
+// GetDocumentsDirFunc is a function that returns the documents directory path
+// This is set at application startup to allow goldext to access the configured path
+var GetDocumentsDirFunc func(docPath string) string
 
 // Preprocessor defines a function that transforms markdown before rendering
 type Preprocessor func(markdown string, docPath string) string
@@ -233,7 +238,15 @@ func isLocalPath(path string) bool {
 func getAttachmentPath(path, docPath string) string {
 	docPath = strings.TrimLeft(docPath, "/")
 	if docPath == "" || docPath == "/" {
+		// For homepage, use the documents directory directly
+		if GetDocumentsDirFunc != nil {
+			return filepath.Join(GetDocumentsDirFunc(""), "pages/home") + string(filepath.Separator) + path
+		}
 		return "data/pages/home/" + path
+	}
+	// For regular documents, use the configured documents directory
+	if GetDocumentsDirFunc != nil {
+		return filepath.Join(GetDocumentsDirFunc(docPath), path)
 	}
 	return "data/documents/" + docPath + "/" + path
 }

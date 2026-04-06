@@ -1,11 +1,11 @@
 package main
 
 import (
-	"os"
-	"fmt"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"wiki-go/internal/auth"
@@ -16,7 +16,7 @@ import (
 	"wiki-go/internal/static"
 
 	// Import goldext package for its initialization side effects
-	_ "wiki-go/internal/goldext"
+	"wiki-go/internal/goldext"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	flag.Parse()
 
 	config.ConfigFilePath = *configfilepath
-	
+
 	// Fix broken config file if it exists (from previous bug)
 	if err := migration.FixBrokenConfig(config.ConfigFilePath); err != nil {
 		log.Printf("Warning: Failed to fix broken config: %v", err)
@@ -41,6 +41,11 @@ func main() {
 	cfg, err := config.LoadConfig(config.ConfigFilePath)
 	if err != nil {
 		log.Fatal("Error loading config:", err)
+	}
+
+	// Set up goldext to use configured documents directory for attachment paths
+	goldext.GetDocumentsDirFunc = func(docPath string) string {
+		return config.GetDocumentsDir(cfg)
 	}
 
 	// Initialize session store for persistent logins
@@ -82,7 +87,7 @@ func main() {
 
 func GetEnvString(name, defaultvalue string) string {
 	value, ok := os.LookupEnv(name)
-	if ! ok {
+	if !ok {
 		return defaultvalue
 	}
 	return value
