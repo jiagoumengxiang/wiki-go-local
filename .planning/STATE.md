@@ -53,6 +53,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 | 260406-cvq | Fix attachment preview path to use config | 2026-04-06 | 0a727e9 | [260406-cvq-fix-attachment-preview-path-to-use-confi](./quick/260406-cvq-fix-attachment-preview-path-to-use-confi/) |
 | 260406-dwf | Fix file upload and download paths for .md files in root directory | 2026-04-06 | ceb497b | [260406-dwf-fix-file-upload-download-paths](./quick/260406-dwf-fix-file-upload-download-paths/) |
 | 260406-exz | Fix .md file path resolution in ListFilesHandler | 2026-04-06 | cb47cd9 | [260406-exz-fix-md-path-resolution](./quick/260406-exz-fix-md-path-resolution/) |
+| 260406-fyq | Fix frontend docPath to keep .md extension | 2026-04-06 | 20fe9ca | [260406-fyq-fix-frontend-docpath-for-md-files](./quick/260406-fyq-fix-frontend-docpath-for-md-files/) |
 
 ## Pending Todos
 
@@ -86,7 +87,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 - **2026-04-05**: Completed quick task 260405-mxv: Fix create document to create MD file instead of directory
 
-- **2026-04-06**: Completed quick task 260406-exz: Fix .md file path resolution in ListFilesHandler
+- **2026-04-06**: Completed quick task 260406-fyq: Fix frontend docPath to keep .md extension
 
 ## Notes
 
@@ -98,4 +99,4 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 ---
 
-*Last updated: 2026-04-06 after quick task 260406-exz completion*
+*Last updated: 2026-04-06 after quick task 260406-fyq completion*
