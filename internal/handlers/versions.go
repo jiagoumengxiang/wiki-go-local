@@ -262,7 +262,7 @@ func handleVersionRestore(w http.ResponseWriter, r *http.Request, cfg *config.Co
 	} else {
 		// Add "documents/" prefix for regular documents
 		versionFilePath = filepath.Join(cfg.Wiki.RootDir, "versions", "documents", docPath, timestamp+".md")
-		documentPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPath, "document.md")
+		documentPath = filepath.Join(config.GetDocumentsDir(cfg), docPath, "document.md")
 		versionRelativePath = "documents/" + docPath
 	}
 

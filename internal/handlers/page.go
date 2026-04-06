@@ -77,7 +77,7 @@ func PageHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 	}
 
 	// Build navigation
-	nav, err := utils.BuildNavigation(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+	nav, err := utils.BuildNavigation(config.GetDocumentsDir(cfg), "")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -98,7 +98,7 @@ func PageHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 	if strings.HasPrefix(decodedPathForFS, "/") {
 		decodedPathForFS = decodedPathForFS[1:]
 	}
-	fsPath := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, decodedPathForFS)
+	fsPath := filepath.Join(config.GetDocumentsDir(cfg), decodedPathForFS)
 
 	// Check if path exists
 	info, err := os.Stat(fsPath)

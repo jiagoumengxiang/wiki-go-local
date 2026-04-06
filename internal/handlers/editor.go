@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 	"wiki-go/internal/auth"
+	"wiki-go/internal/config"
 	"wiki-go/internal/roles"
 	"wiki-go/internal/utils"
 )
@@ -63,11 +64,11 @@ func SourceHandler(w http.ResponseWriter, r *http.Request) {
 		// Check if path ends with .md (direct file access)
 		if strings.HasSuffix(path, ".md") {
 			// Direct file access - use the file directly
-			docPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+			docPath = filepath.Join(config.GetDocumentsDir(cfg), path)
 			dirPath = filepath.Dir(docPath)
 		} else {
 			// Directory access - look for document.md
-			dirPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+			dirPath = filepath.Join(config.GetDocumentsDir(cfg), path)
 			docPath = filepath.Join(dirPath, "document.md")
 		}
 	}
@@ -162,13 +163,13 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 		// Check if path ends with .md (direct file access)
 		if strings.HasSuffix(path, ".md") {
 			// Direct file access - use the file directly
-			docPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+			docPath = filepath.Join(config.GetDocumentsDir(cfg), path)
 			// For versioning, remove .md from relative path
 			relativePath = "documents/" + strings.TrimSuffix(path, ".md")
 		} else {
 			// Directory access - save to document.md
 			relativePath = "documents/" + path
-			docPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path, "document.md")
+			docPath = filepath.Join(config.GetDocumentsDir(cfg), path, "document.md")
 		}
 	}
 
@@ -314,7 +315,7 @@ func CreateDocumentHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Creating document: Title=%s, Path=%s, CleanPath=%s", req.Title, req.Path, cleanPath)
 
 	// Build the file path - add .md extension directly
-	documentDir := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+	documentDir := config.GetDocumentsDir(cfg)
 	docFile := filepath.Join(documentDir, cleanPath+".md")
 
 	// Log the file path
@@ -443,7 +444,7 @@ func DeleteDocumentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Build the file path
 	docPath = filepath.Clean(docPath)
-	documentDir := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+	documentDir := config.GetDocumentsDir(cfg)
 	fullPath := filepath.Join(documentDir, docPath)
 
 	// Check if file exists

@@ -45,7 +45,7 @@ func performSearch(query string, session *auth.Session, cfg *config.Config) []Se
 	searchTerms := parseSearchQuery(query)
 
 	// Full path to the documents directory
-	docsPath := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+	docsPath := config.GetDocumentsDir(cfg)
 
 	err := filepath.Walk(docsPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {

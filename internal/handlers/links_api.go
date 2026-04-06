@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"wiki-go/internal/config"
 	"wiki-go/internal/frontmatter"
 	"wiki-go/internal/utils"
 )
@@ -70,7 +71,7 @@ func AddLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get document path
 	docPath := getDocumentPath(decodedPath)
-	
+
 	// Read current document
 	content, err := os.ReadFile(docPath)
 	if err != nil {
@@ -148,8 +149,8 @@ func EditLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Parse request body (includes old and new link data)
 	var req struct {
-		OldURL   string      `json:"oldUrl"`
-		NewLink  LinkRequest `json:"newLink"`
+		OldURL  string      `json:"oldUrl"`
+		NewLink LinkRequest `json:"newLink"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		sendLinkError(w, "Invalid request payload", http.StatusBadRequest, err.Error())
@@ -164,7 +165,7 @@ func EditLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get document path
 	docPath := getDocumentPath(decodedPath)
-	
+
 	// Read current document
 	content, err := os.ReadFile(docPath)
 	if err != nil {
@@ -192,7 +193,7 @@ func EditLinkHandler(w http.ResponseWriter, r *http.Request) {
 					Category:    req.NewLink.Category,
 					AddedAt:     parseDate(req.NewLink.Date),
 				}
-				
+
 				// If category changed, move the link
 				if req.NewLink.Category != category {
 					// Remove from old category
@@ -202,10 +203,10 @@ func EditLinkHandler(w http.ResponseWriter, r *http.Request) {
 						linksData.Categories[req.NewLink.Category] = []frontmatter.Link{}
 					}
 					linksData.Categories[req.NewLink.Category] = append(
-						linksData.Categories[req.NewLink.Category], 
+						linksData.Categories[req.NewLink.Category],
 						linksData.Categories[category][i])
 				}
-				
+
 				linkFound = true
 				break
 			}
@@ -285,7 +286,7 @@ func DeleteLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get document path
 	docPath := getDocumentPath(decodedPath)
-	
+
 	// Read current document
 	content, err := os.ReadFile(docPath)
 	if err != nil {
@@ -310,17 +311,17 @@ func DeleteLinkHandler(w http.ResponseWriter, r *http.Request) {
 				if req.Category != "" && category != req.Category {
 					continue // Skip this link, wrong category
 				}
-				
+
 				// If title is provided, verify it matches
 				if req.Title != "" && link.Title != req.Title {
 					continue // Skip this link, wrong title
 				}
-				
+
 				// If description is provided, verify it matches
 				if req.Description != "" && link.Description != req.Description {
 					continue // Skip this link, wrong description
 				}
-				
+
 				// All checks passed, remove this link
 				linksData.Categories[category] = append(links[:i], links[i+1:]...)
 				linkFound = true
@@ -379,23 +380,23 @@ func validateLinkRequest(req LinkRequest) error {
 	if req.Category == "" {
 		return fmt.Errorf("Category is required")
 	}
-	
+
 	// Validate URL format
 	if err := frontmatter.ValidateURL(req.URL); err != nil {
 		return err
 	}
-	
+
 	// Validate the full link structure
 	link := frontmatter.Link{
 		URL:      req.URL,
 		Title:    req.Title,
 		Category: req.Category,
 	}
-	
+
 	if errors := frontmatter.ValidateLink(link); len(errors) > 0 {
 		return errors[0] // Return the first error
 	}
-	
+
 	return nil
 }
 
@@ -403,11 +404,11 @@ func parseDate(dateStr string) time.Time {
 	if dateStr == "" {
 		return time.Now()
 	}
-	
+
 	if parsed, err := time.Parse("2006-01-02", dateStr); err == nil {
 		return parsed
 	}
-	
+
 	return time.Now()
 }
 
@@ -418,17 +419,17 @@ func getDocumentPath(path string) string {
 	path = strings.ReplaceAll(path, "\\", "/")
 
 	// Build the full filesystem path
-	return filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path, "document.md")
+	return filepath.Join(config.GetDocumentsDir(cfg), path, "document.md")
 }
 
 func generateLinksMarkdown(linksData *frontmatter.LinksData, originalContent string) (string, error) {
 	// Extract frontmatter and title from original content
 	lines := strings.Split(originalContent, "\n")
-	
+
 	var frontmatterLines []string
 	var title string
 	contentStartIndex := 0
-	
+
 	// Handle frontmatter
 	if len(lines) > 0 && strings.TrimSpace(lines[0]) == "---" {
 		frontmatterLines = append(frontmatterLines, lines[0])
@@ -440,7 +441,7 @@ func generateLinksMarkdown(linksData *frontmatter.LinksData, originalContent str
 			}
 		}
 	}
-	
+
 	// Find title (first # heading)
 	for i := contentStartIndex; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
@@ -450,10 +451,10 @@ func generateLinksMarkdown(linksData *frontmatter.LinksData, originalContent str
 			break
 		}
 	}
-	
+
 	// Build new content
 	var result strings.Builder
-	
+
 	// Add frontmatter
 	if len(frontmatterLines) > 0 {
 		for _, line := range frontmatterLines {
@@ -462,46 +463,46 @@ func generateLinksMarkdown(linksData *frontmatter.LinksData, originalContent str
 		}
 		result.WriteString("\n")
 	}
-	
+
 	// Add title
 	if title != "" {
 		result.WriteString("# ")
 		result.WriteString(title)
 		result.WriteString("\n\n")
 	}
-	
+
 	// Add categories and links
 	for category, links := range linksData.Categories {
 		if len(links) == 0 {
 			continue
 		}
-		
+
 		result.WriteString("## ")
 		result.WriteString(category)
 		result.WriteString("\n")
-		
+
 		for _, link := range links {
 			result.WriteString("- [")
 			result.WriteString(link.Title)
 			result.WriteString("](")
 			result.WriteString(link.URL)
 			result.WriteString(")")
-			
+
 			if link.Description != "" {
 				result.WriteString(" - ")
 				result.WriteString(link.Description)
 			}
-			
+
 			if !link.AddedAt.IsZero() {
 				result.WriteString(" | ")
 				result.WriteString(link.AddedAt.Format("2006-01-02"))
 			}
-			
+
 			result.WriteString("\n")
 		}
 		result.WriteString("\n")
 	}
-	
+
 	return result.String(), nil
 }
 

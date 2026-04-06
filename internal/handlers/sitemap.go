@@ -201,7 +201,7 @@ func gatherPages(baseURL string, cfg *config.Config, session *auth.Session) ([]S
 	}
 
 	// Walk the documents directory
-	docsDir := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+	docsDir := config.GetDocumentsDir(cfg)
 	err := filepath.Walk(docsDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err

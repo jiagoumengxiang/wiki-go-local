@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"wiki-go/internal/auth"
 	"wiki-go/internal/config"
 	"wiki-go/internal/i18n"
 	"wiki-go/internal/types"
 	"wiki-go/internal/utils"
-	"wiki-go/internal/auth"
 )
 
 // Default homepage content
@@ -526,7 +526,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 	}
 
 	// Get navigation items
-	nav, err := utils.BuildNavigation(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+	nav, err := utils.BuildNavigation(config.GetDocumentsDir(cfg), "")
 	if err != nil {
 		log.Printf("Error building navigation: %v", err)
 		http.Error(w, "Failed to build navigation", http.StatusInternalServerError)
@@ -571,7 +571,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 	// Get authentication status
 	// session is already retrieved above
 	isAuthenticated := session != nil
-	
+
 	// Get user role
 	userRole := ""
 	if isAuthenticated && session != nil {
@@ -580,7 +580,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 
 	// Render the markdown content
 	renderedContent := template.HTML(utils.RenderMarkdown(string(content)))
-	
+
 	// If content is empty but home document exists, ensure we have something truthy for template conditions
 	if strings.TrimSpace(string(renderedContent)) == "" {
 		renderedContent = template.HTML(" ") // Single space to make it truthy but effectively empty

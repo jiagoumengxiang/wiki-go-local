@@ -105,7 +105,12 @@ func BuildNavigation(rootDir string, documentsDir string) (*types.NavItem, error
 	}
 
 	// Create the documents directory path
-	docsPath := filepath.Join(rootDir, documentsDir)
+	var docsPath string
+	if documentsDir == "" {
+		docsPath = rootDir
+	} else {
+		docsPath = filepath.Join(rootDir, documentsDir)
+	}
 
 	// Check if documents directory exists
 	if _, err := os.Stat(docsPath); os.IsNotExist(err) {

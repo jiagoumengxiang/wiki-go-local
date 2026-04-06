@@ -10,6 +10,7 @@ import (
 
 	"wiki-go/internal/auth"
 	"wiki-go/internal/comments"
+	"wiki-go/internal/config"
 	"wiki-go/internal/roles"
 	"wiki-go/internal/utils"
 )
@@ -62,7 +63,7 @@ func AddCommentHandler(w http.ResponseWriter, r *http.Request) {
 	docPath = utils.SanitizePath(docPath)
 
 	// Check if the document exists
-	documentDir := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+	documentDir := config.GetDocumentsDir(cfg)
 	fullDocPath := filepath.Join(documentDir, docPath, "document.md")
 
 	if _, err := os.Stat(fullDocPath); os.IsNotExist(err) {

@@ -27,14 +27,14 @@ type ImportResponse struct {
 
 // ImportStatusResponse represents the status of an import job
 type ImportStatusResponse struct {
-	Status       string       `json:"status"` // "processing", "completed", "failed"
-	Progress     int          `json:"progress"`
-	CurrentFile  string       `json:"currentFile,omitempty"`
-	SuccessCount int          `json:"successCount"`
-	ErrorCount   int          `json:"errorCount"`
+	Status        string         `json:"status"` // "processing", "completed", "failed"
+	Progress      int            `json:"progress"`
+	CurrentFile   string         `json:"currentFile,omitempty"`
+	SuccessCount  int            `json:"successCount"`
+	ErrorCount    int            `json:"errorCount"`
 	ImportedFiles []ImportedFile `json:"importedFiles,omitempty"`
-	Errors       []string     `json:"errors,omitempty"`
-	Message      string       `json:"message,omitempty"`
+	Errors        []string       `json:"errors,omitempty"`
+	Message       string         `json:"message,omitempty"`
 }
 
 // ImportedFile represents a successfully imported file
@@ -127,12 +127,12 @@ func ImportHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 	// Create initial job status
 	importJobsMutex.Lock()
 	importJobs[jobID] = &ImportStatusResponse{
-		Status:       "processing",
-		Progress:     0,
-		SuccessCount: 0,
-		ErrorCount:   0,
+		Status:        "processing",
+		Progress:      0,
+		SuccessCount:  0,
+		ErrorCount:    0,
 		ImportedFiles: []ImportedFile{},
-		Errors:       []string{},
+		Errors:        []string{},
 	}
 	importJobsMutex.Unlock()
 
@@ -293,7 +293,7 @@ func processMarkdownFile(file *zip.File, jobID string, cfg *config.Config) error
 	}
 
 	// Create the full path to the document directory
-	docDir := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, targetPath)
+	docDir := filepath.Join(config.GetDocumentsDir(cfg), targetPath)
 
 	// Create the directory if it doesn't exist
 	err = os.MkdirAll(docDir, 0755)
@@ -303,13 +303,13 @@ func processMarkdownFile(file *zip.File, jobID string, cfg *config.Config) error
 
 	// Write the content to document.md in the target directory
 	docPath := filepath.Join(docDir, "document.md")
-	
+
 	// Ensure the content has proper permissions
 	err = os.WriteFile(docPath, content, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to write file: %v", err)
 	}
-	
+
 	// Explicitly set permissions to ensure it's readable and writable
 	err = os.Chmod(docPath, 0644)
 	if err != nil {

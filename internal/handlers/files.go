@@ -126,7 +126,7 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		uploadDir = filepath.Join(cfg.Wiki.RootDir, docPath)
 	} else {
 		// For regular documents
-		uploadDir = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPath)
+		uploadDir = filepath.Join(config.GetDocumentsDir(cfg), docPath)
 	}
 
 	// Handle .md file paths - use parent directory for attachments
@@ -407,7 +407,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		dirPath = filepath.Join(cfg.Wiki.RootDir, path)
 	} else {
 		// For regular documents
-		dirPath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+		dirPath = filepath.Join(config.GetDocumentsDir(cfg), path)
 	}
 
 	log.Printf("ListFilesHandler: initial dirPath=%s", dirPath)
@@ -570,7 +570,7 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		filePath = filepath.Join(cfg.Wiki.RootDir, path)
 	} else {
 		// For regular documents
-		filePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+		filePath = filepath.Join(config.GetDocumentsDir(cfg), path)
 	}
 
 	// Handle .md file paths - if path contains a .md file followed by a filename,
@@ -594,7 +594,7 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		if strings.HasPrefix(docPath, "pages/") {
 			mdDir = filepath.Join(cfg.Wiki.RootDir, docPath, docPart+".md")
 		} else {
-			mdDir = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPath, docPart+".md")
+			mdDir = filepath.Join(config.GetDocumentsDir(cfg), docPath, docPart+".md")
 		}
 
 		// Check if .md file exists
@@ -696,9 +696,9 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 			// If potentialDocPath equals docPart, use only one of them to avoid doubling the path
 			// e.g., "test/filename.pdf" → "documents/test.md" (not "documents/test/test.md")
 			if potentialDocPath == docPart {
-				mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPart+".md")
+				mdFilePath = filepath.Join(config.GetDocumentsDir(cfg), docPart+".md")
 			} else {
-				mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, potentialDocPath, docPart+".md")
+				mdFilePath = filepath.Join(config.GetDocumentsDir(cfg), potentialDocPath, docPart+".md")
 			}
 		}
 
@@ -740,7 +740,7 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		filePath = filepath.Join(cfg.Wiki.RootDir, path)
 	} else {
 		// For regular documents
-		filePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+		filePath = filepath.Join(config.GetDocumentsDir(cfg), path)
 	}
 
 	// Handle .md file paths - if path contains a .md file followed by a filename,
@@ -756,7 +756,7 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		if strings.HasPrefix(docPath, "pages/") {
 			mdFilePath = filepath.Join(cfg.Wiki.RootDir, docPath+".md")
 		} else {
-			mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPath+".md")
+			mdFilePath = filepath.Join(config.GetDocumentsDir(cfg), docPath+".md")
 		}
 
 		// Get parent directory of .md file
@@ -780,9 +780,9 @@ func ServeFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 			// If potentialDocPath equals docPart, use only one of them to avoid doubling the path
 			// e.g., "test/filename.pdf" → "documents/test.md" (not "documents/test/test.md")
 			if potentialDocPath == docPart {
-				mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, docPart+".md")
+				mdFilePath = filepath.Join(config.GetDocumentsDir(cfg), docPart+".md")
 			} else {
-				mdFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, potentialDocPath, docPart+".md")
+				mdFilePath = filepath.Join(config.GetDocumentsDir(cfg), potentialDocPath, docPart+".md")
 			}
 		}
 
@@ -1235,7 +1235,7 @@ func ListDocumentsHandler(w http.ResponseWriter, r *http.Request, cfg *config.Co
 	}
 
 	// Paths to scan for documents
-	documentsPath := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+	documentsPath := config.GetDocumentsDir(cfg)
 
 	var documents []Document
 
@@ -1392,10 +1392,10 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	var fileFound bool
 
 	// Try the documents directory first (most common case)
-	currentDocumentsPath := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, path)
+	currentDocumentsPath := filepath.Join(config.GetDocumentsDir(cfg), path)
 	if fileExists(currentDocumentsPath) {
 		currentFilePath = currentDocumentsPath
-		newFilePath = filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, newPath)
+		newFilePath = filepath.Join(config.GetDocumentsDir(cfg), newPath)
 		fileFound = true
 		fmt.Printf("File found in documents path: %s\n", currentFilePath)
 	}
@@ -1415,7 +1415,7 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	// which could mean the file was already renamed
 	if !fileFound {
 		// Check if the destination file already exists with the new name
-		possibleNewPathInDocuments := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir, newPath)
+		possibleNewPathInDocuments := filepath.Join(config.GetDocumentsDir(cfg), newPath)
 		possibleNewPathInPages := filepath.Join(cfg.Wiki.RootDir, newPath)
 
 		if fileExists(possibleNewPathInDocuments) ||
@@ -1525,7 +1525,7 @@ func ListFoldersHandler(w http.ResponseWriter, r *http.Request, cfg *config.Conf
 		Level: 0,
 	})
 
-	rootDir := filepath.Join(cfg.Wiki.RootDir, cfg.Wiki.DocumentsDir)
+	rootDir := config.GetDocumentsDir(cfg)
 
 	// Walk the directory
 	err := filepath.WalkDir(rootDir, func(path string, d fs.DirEntry, err error) error {
