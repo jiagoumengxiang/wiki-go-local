@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -525,9 +524,6 @@ func saveDocumentWithVersioning(docPath, relativePath string, content []byte) er
 
 				// Save the current content as a version
 				_ = os.WriteFile(versionPath, currentContent, 0644)
-
-				// Log the versioning
-				log.Printf("Created version: %s", versionPath)
 
 				// Clean up old versions if needed
 				utils.CleanupOldVersions(versionDir, cfg.Wiki.MaxVersions)

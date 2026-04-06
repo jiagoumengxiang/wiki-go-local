@@ -55,8 +55,6 @@ func CleanupOldVersions(versionDir string, maxVersions int) {
 		versionPath := filepath.Join(versionDir, versions[i])
 		if err := os.Remove(versionPath); err != nil {
 			log.Printf("Error deleting old version %s: %v", versionPath, err)
-		} else {
-			log.Printf("Deleted old version: %s", versionPath)
 		}
 	}
 }

@@ -205,9 +205,6 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 				// Save the current content as a version
 				_ = os.WriteFile(versionPath, currentContent, 0644) // Ignore error for now
 
-				// Log the versioning
-				log.Printf("Created version: %s", versionPath)
-
 				// Clean up old versions if needed
 				utils.CleanupOldVersions(versionDir, cfg.Wiki.MaxVersions)
 			}
@@ -306,26 +303,17 @@ func CreateDocumentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Creating document: Title=%s, Path=%s, CleanPath=%s", req.Title, req.Path, cleanPath)
-
 	// Get the config from the package variable
 	// cfg is defined in handlers.go and initialized by InitHandlers
-
-	// Log the paths for debugging
-	log.Printf("Creating document: Title=%s, Path=%s, CleanPath=%s", req.Title, req.Path, cleanPath)
 
 	// Build the file path - add .md extension directly
 	documentDir := config.GetDocumentsDir(cfg)
 	docFile := filepath.Join(documentDir, cleanPath+".md")
 
-	// Log the file path
-	log.Printf("Creating file: %s", docFile)
-
 	// Create parent directory if it doesn't exist
 	parentDir := filepath.Dir(docFile)
 	err := os.MkdirAll(parentDir, 0755)
 	if err != nil {
-		log.Printf("Error creating parent directory: %v", err)
 		sendJSONError(w, "Failed to create parent directory", http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -381,7 +369,6 @@ func sendJSONError(w http.ResponseWriter, message string, statusCode int, errorD
 	}
 
 	json.NewEncoder(w).Encode(response)
-	log.Printf("Error response: %s (%d) - %s", message, statusCode, errorDetails)
 }
 
 // DocumentHandler is a combined handler for document operations (GET, DELETE)
@@ -470,14 +457,12 @@ func DeleteDocumentHandler(w http.ResponseWriter, r *http.Request) {
 			sendJSONError(w, "Error deleting directory", http.StatusInternalServerError, err.Error())
 			return
 		}
-		log.Printf("Recursively deleted directory: %s", fullPath)
 	} else {
 		// Delete the file
 		if err := os.Remove(fullPath); err != nil {
 			sendJSONError(w, "Error deleting document", http.StatusInternalServerError, err.Error())
 			return
 		}
-		log.Printf("Deleted file: %s", fullPath)
 	}
 
 	// Also delete the corresponding versions directory
@@ -501,9 +486,6 @@ func DeleteDocumentHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := os.Stat(versionsPath); err == nil {
 		if err := os.RemoveAll(versionsPath); err != nil {
 			log.Printf("Warning: Failed to delete versions directory: %s - %v", versionsPath, err)
-			// Continue execution even if versions deletion fails
-		} else {
-			log.Printf("Deleted versions directory: %s", versionsPath)
 		}
 	}
 
@@ -514,9 +496,6 @@ func DeleteDocumentHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := os.Stat(commentsPath); err == nil {
 		if err := os.RemoveAll(commentsPath); err != nil {
 			log.Printf("Warning: Failed to delete comments directory: %s - %v", commentsPath, err)
-			// Continue execution even if comments deletion fails
-		} else {
-			log.Printf("Deleted comments directory: %s", commentsPath)
 		}
 	}
 

@@ -91,20 +91,15 @@ func MoveDocumentHandler(w http.ResponseWriter, r *http.Request, cfg *config.Con
 
 	// Check if this is a move to root operation
 	moveToRoot := false
-	sourceBase := filepath.Base(moveReq.SourcePath)
 	sourceDir := filepath.Dir(moveReq.SourcePath)
 
 	// If we're moving to the root (empty target path) and the source is not already at the root
 	if moveReq.TargetPath == "" && sourceDir != "." {
 		moveToRoot = true
-		log.Printf("Detected move to root operation: %s -> %s", moveReq.SourcePath, moveReq.NewSlug)
 	}
 
 	// Determine if this is a move operation
 	isMove := moveReq.TargetPath != "" || moveToRoot
-
-	log.Printf("Operation analysis: sourceBase=%s, sourceDir=%s, moveToRoot=%v",
-		sourceBase, sourceDir, moveToRoot)
 
 	// Build the full source path
 	documentDir := config.GetDocumentsDir(cfg)
@@ -124,10 +119,6 @@ func MoveDocumentHandler(w http.ResponseWriter, r *http.Request, cfg *config.Con
 	// Determine the target path based on operation type
 	var fullTargetPath string
 	var newPath string
-
-	// Log the request details for debugging
-	log.Printf("Move request: SourcePath=%s, TargetPath=%s, NewSlug=%s", moveReq.SourcePath, moveReq.TargetPath, moveReq.NewSlug)
-	log.Printf("Operation type: isRename=%v, isMove=%v", isRename, isMove)
 
 	if isRename && !isMove {
 		// Rename operation (change slug only)
@@ -206,12 +197,8 @@ func MoveDocumentHandler(w http.ResponseWriter, r *http.Request, cfg *config.Con
 		return
 	}
 
-	// Log paths for debugging
-	log.Printf("Moving document from %s to %s", fullSourcePath, fullTargetPath)
-
 	// Check if source and target are the same
 	if fullSourcePath == fullTargetPath {
-		log.Printf("WARNING: Source and target paths are the same! This will cause an error.")
 		sendJSONResponse(w, false, "Source and target paths are the same", http.StatusBadRequest, "", "")
 		return
 	}

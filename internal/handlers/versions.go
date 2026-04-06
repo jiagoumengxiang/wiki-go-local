@@ -49,8 +49,6 @@ func VersionsHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config)
 	// Set JSON content type header
 	w.Header().Set("Content-Type", "application/json")
 
-	fmt.Printf("Version handler request: %s %s\n", r.Method, r.URL.Path)
-
 	// Extract the path from the URL
 	// URL format: /api/versions/{document-path} or /api/versions/{document-path}/{version-timestamp}
 	pathParts := strings.Split(r.URL.Path, "/api/versions/")
@@ -67,8 +65,6 @@ func VersionsHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config)
 		sendJSONErrorVersion(w, "Document path is required", http.StatusBadRequest)
 		return
 	}
-
-	fmt.Printf("Processing version request for document path: %s\n", docPath)
 
 	// Check for restore action first
 	if strings.HasSuffix(r.URL.Path, "/restore") && r.Method == "POST" {
@@ -241,9 +237,6 @@ func handleVersionRestore(w http.ResponseWriter, r *http.Request, cfg *config.Co
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 
-	// Debug logging
-	fmt.Printf("Restore request: docPath=%s, timestamp=%s\n", docPath, timestamp)
-
 	// Adjust the path for the new versioning structure
 	var versionFilePath string
 	var documentPath string
@@ -266,9 +259,6 @@ func handleVersionRestore(w http.ResponseWriter, r *http.Request, cfg *config.Co
 		versionRelativePath = "documents/" + docPath
 	}
 
-	fmt.Printf("Version file path: %s\n", versionFilePath)
-	fmt.Printf("Document path for restore: %s\n", documentPath)
-
 	// Check if version file exists
 	if _, err := os.Stat(versionFilePath); os.IsNotExist(err) {
 		sendJSONErrorVersion(w, "Version not found", http.StatusNotFound)
@@ -278,7 +268,6 @@ func handleVersionRestore(w http.ResponseWriter, r *http.Request, cfg *config.Co
 	// Ensure the document directory exists
 	docDir := filepath.Dir(documentPath)
 	if err := os.MkdirAll(docDir, 0755); err != nil {
-		fmt.Printf("Error creating directory: %v\n", err)
 		sendJSONErrorVersion(w, "Failed to ensure document directory exists", http.StatusInternalServerError)
 		return
 	}
@@ -286,7 +275,6 @@ func handleVersionRestore(w http.ResponseWriter, r *http.Request, cfg *config.Co
 	// Read the version file content
 	versionContent, err := os.ReadFile(versionFilePath)
 	if err != nil {
-		fmt.Printf("Error reading version file: %v\n", err)
 		sendJSONErrorVersion(w, "Failed to read version file", http.StatusInternalServerError)
 		return
 	}
@@ -318,19 +306,13 @@ func handleVersionRestore(w http.ResponseWriter, r *http.Request, cfg *config.Co
 
 	// Write the version content to the document file
 	if err := os.WriteFile(documentPath, versionContent, 0644); err != nil {
-		fmt.Printf("Error writing to document file: %v\n", err)
 		sendJSONErrorVersion(w, "Failed to restore document", http.StatusInternalServerError)
 		return
 	}
 
 	// Force update the file's modification time to ensure cache invalidation
 	now := time.Now()
-	if err := os.Chtimes(documentPath, now, now); err != nil {
-		fmt.Printf("Warning: couldn't update file timestamp: %v\n", err)
-		// Continue anyway, not critical
-	}
-
-	fmt.Printf("Successfully restored version %s to document %s\n", timestamp, documentPath)
+	os.Chtimes(documentPath, now, now)
 
 	// Return success response
 	response := map[string]interface{}{

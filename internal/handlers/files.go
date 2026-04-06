@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -236,9 +235,6 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		// Note: http.DetectContentType is limited and may return generic types like "application/octet-stream"
 		// So we need to be careful with the validation logic
 		if !isContentTypeCompatible(detectedContentType, expectedContentType, buffer, fileHeader.Filename) {
-			// Debug info for file validation issues
-			debugFileValidation(buffer, fileHeader.Filename, detectedContentType, expectedContentType)
-
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(FileResponse{
 				Success: false,
@@ -298,12 +294,10 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 			urlDocPath = docPath
 		}
 		urlPath := filepath.Join("/api/files", urlDocPath, filename)
-		log.Printf("UploadFileHandler: URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
 		// Replace backslashes with forward slashes for URLs
 		urlPath = strings.ReplaceAll(urlPath, "\\", "/")
 		// URL-encode special characters (spaces, Chinese characters, etc.)
 		urlPath = url.PathEscape(urlPath)
-		log.Printf("UploadFileHandler: encoded URL=%s (original=%s)", urlPath, filepath.Join("/api/files", docPath, filename))
 
 		// Return success response
 		w.WriteHeader(http.StatusOK)
@@ -317,7 +311,6 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 
 	// Full path where the file will be saved
 	savePath := filepath.Join(uploadDir, filename)
-	log.Printf("UploadFileHandler: savePath=%s", savePath)
 
 	// Create destination file
 	dst, err := os.Create(savePath)
@@ -345,12 +338,10 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	// Create URL path for the file
 	// Always use full path to match ListFilesHandler behavior
 	urlPath := filepath.Join("/api/files", docPath, filename)
-	log.Printf("UploadFileHandler: URL=%s (docPath=%s, filename=%s)", urlPath, docPath, filename)
 	// Replace backslashes with forward slashes for URLs
 	urlPath = strings.ReplaceAll(urlPath, "\\", "/")
 	// URL-encode special characters (spaces, Chinese characters, etc.)
 	urlPath = url.PathEscape(urlPath)
-	log.Printf("UploadFileHandler: encoded URL=%s (original=%s)", urlPath, filepath.Join("/api/files", docPath, filename))
 
 	// Return success response
 	w.WriteHeader(http.StatusOK)
@@ -422,8 +413,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 		dirPath = filepath.Join(config.GetDocumentsDir(cfg), path)
 	}
 
-	log.Printf("ListFilesHandler: initial dirPath=%s", dirPath)
-
 	// Handle .md file paths - use parent directory for attachments
 	if strings.HasSuffix(strings.ToLower(path), ".md") {
 		// For .md files, check if the .md file itself exists as a file
@@ -439,7 +428,6 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config
 			// Rebuild to path without .md file
 			dirPath = filepath.Join(config.GetDocumentsDir(cfg), filepath.Dir(pathWithoutMd))
 		}
-		log.Printf("ListFilesHandler: .md file detected, dirPath=%s", dirPath)
 	}
 
 	// Check if directory exists
@@ -1201,47 +1189,6 @@ func isOfficeFile(content []byte, officeType string) bool {
 	return false
 }
 
-// debugFileValidation helps diagnose file validation issues (only active in dev mode)
-func debugFileValidation(fileContent []byte, filename string, detected, expected string) {
-	// Skip if not in dev mode
-	// if !config.IsDevMode() {
-	//    return
-	// }
-
-	ext := strings.ToLower(filepath.Ext(filename))
-	fmt.Printf("File Validation Debug (%s):\n", filename)
-	fmt.Printf("  - Detected MIME: %s\n", detected)
-	fmt.Printf("  - Expected MIME: %s\n", expected)
-	fmt.Printf("  - Content starts with: %x\n", fileContent[:min(16, len(fileContent))])
-
-	// For Office files, try to show ZIP contents
-	if ext == ".docx" || ext == ".xlsx" || ext == ".pptx" {
-		// Check for ZIP signature
-		if len(fileContent) >= 4 && string(fileContent[0:4]) == "PK\x03\x04" {
-			fmt.Println("  - Has valid ZIP signature")
-
-			// Try to open as ZIP
-			reader := bytes.NewReader(fileContent)
-			zipReader, err := zip.NewReader(reader, int64(len(fileContent)))
-			if err != nil {
-				fmt.Printf("  - Failed to open as ZIP: %v\n", err)
-			} else {
-				fmt.Println("  - ZIP contents:")
-				for i, f := range zipReader.File {
-					if i < 10 { // Limit to first 10 files
-						fmt.Printf("    * %s\n", f.Name)
-					} else if i == 10 {
-						fmt.Println("    * ... (more files)")
-						break
-					}
-				}
-			}
-		} else {
-			fmt.Println("  - Missing ZIP signature!")
-		}
-	}
-}
-
 // ListDocumentsHandler handles requests to list all documents for the document picker
 func ListDocumentsHandler(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 	// Set response headers
@@ -1394,22 +1341,15 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		return
 	}
 
-	// Debug incoming request
-	fmt.Printf("Rename request received - CurrentPath: %s, NewName: %s\n", renameReq.CurrentPath, renameReq.NewName)
-
 	// Clean and normalize the path
 	path := renameReq.CurrentPath
 	path = filepath.Clean(path)
 	path = strings.TrimSuffix(path, "/")
 	path = strings.ReplaceAll(path, "\\", "/")
 
-	// Extract directory and filename
+	// Extract directory and construct new path
 	dir := filepath.Dir(path)
-	filename := filepath.Base(path)
 	newPath := filepath.Join(dir, renameReq.NewName)
-
-	// Log paths for debugging
-	fmt.Printf("Path components: path=%s, dir=%s, filename=%s, newPath=%s\n", path, dir, filename, newPath)
 
 	// Determine file paths based on two possible locations
 	var currentFilePath, newFilePath string
@@ -1421,7 +1361,6 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		currentFilePath = currentDocumentsPath
 		newFilePath = filepath.Join(config.GetDocumentsDir(cfg), newPath)
 		fileFound = true
-		fmt.Printf("File found in documents path: %s\n", currentFilePath)
 	}
 
 	// If not found in documents, try pages directory
@@ -1431,7 +1370,6 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 			currentFilePath = currentPagesPath
 			newFilePath = filepath.Join(cfg.Wiki.RootDir, newPath)
 			fileFound = true
-			fmt.Printf("File found in pages path: %s\n", currentFilePath)
 		}
 	}
 
@@ -1445,7 +1383,6 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		if fileExists(possibleNewPathInDocuments) ||
 			(strings.HasPrefix(newPath, "pages/") && fileExists(possibleNewPathInPages)) {
 			// The file with the new name already exists, likely was already renamed
-			fmt.Printf("File already appears to have been renamed to: %s\n", newPath)
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(FileResponse{
 				Success: true,
@@ -1456,7 +1393,6 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		}
 
 		// If we get here, the file truly doesn't exist
-		fmt.Printf("Error: File not found in documents or pages path\n")
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(FileResponse{
 			Success: false,
@@ -1464,9 +1400,6 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 		})
 		return
 	}
-
-	// Log the full paths for debugging
-	fmt.Printf("Renaming file: %s -> %s\n", currentFilePath, newFilePath)
 
 	// Check if target already exists
 	if _, err := os.Stat(newFilePath); err == nil {
@@ -1481,7 +1414,6 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	// Rename the file
 	err := os.Rename(currentFilePath, newFilePath)
 	if err != nil {
-		fmt.Printf("Error renaming file: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(FileResponse{
 			Success: false,
@@ -1494,9 +1426,6 @@ func RenameFileHandler(w http.ResponseWriter, r *http.Request, cfg *config.Confi
 	urlPath := filepath.Join("/api/files", newPath)
 	// Replace backslashes with forward slashes for URLs
 	urlPath = strings.ReplaceAll(urlPath, "\\", "/")
-
-	fmt.Printf("File renamed successfully: %s -> %s\n", currentFilePath, newFilePath)
-	fmt.Printf("URL path: %s\n", urlPath)
 
 	// Return success response
 	w.WriteHeader(http.StatusOK)
